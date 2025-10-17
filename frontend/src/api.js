@@ -106,4 +106,17 @@ export const gradeAPI = {
     api.get(`/grades/course/${courseId}/overview`),
 };
 
+// Live Class API
+export const liveClassAPI = {
+  createLiveClass: (liveClassData) => api.post("/live-classes", liveClassData),
+  getCourseLiveClasses: (courseId) =>
+    api.get(`/live-classes/course/${courseId}`),
+  getMyLiveClasses: () => api.get("/live-classes/my-classes"),
+  getMyScheduledClasses: () => api.get("/live-classes/my-scheduled"),
+  joinLiveClass: (id) => api.get(`/live-classes/${id}/join`),
+  getLiveClass: (id) => api.get(`/live-classes/${id}`),
+  endLiveClass: (id) => api.put(`/live-classes/${id}/end`),
+  deleteLiveClass: (id) => api.delete(`/live-classes/${id}`),
+};
+
 export default api;

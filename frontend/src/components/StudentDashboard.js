@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { enrollmentAPI, courseAPI } from "../api";
+import { enrollmentAPI, courseAPI, liveClassAPI } from "../api";
 
 const StudentDashboard = () => {
   const [user, setUser] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [availableCourses, setAvailableCourses] = useState([]);
+  const [liveClasses, setLiveClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -41,12 +42,25 @@ const StudentDashboard = () => {
         "✅ [StudentDashboard] Enrollments:",
         enrollmentResponse.data
       );
-      setEnrolledCourses(enrollmentResponse.data.enrollments || []);
+      // Filter out enrollments with null courses (deleted courses)
+      const validEnrollments = (
+        enrollmentResponse.data.enrollments || []
+      ).filter((enrollment) => enrollment.course !== null);
+      setEnrolledCourses(validEnrollments);
 
       console.log("📚 [StudentDashboard] Fetching all courses...");
       const coursesResponse = await courseAPI.getAllCourses();
       console.log("✅ [StudentDashboard] All courses:", coursesResponse.data);
       setAvailableCourses(coursesResponse.data.courses || []);
+
+      // Fetch live classes for student
+      console.log("📺 [StudentDashboard] Fetching live classes...");
+      const liveClassResponse = await liveClassAPI.getMyLiveClasses();
+      console.log(
+        "✅ [StudentDashboard] Live classes:",
+        liveClassResponse.data
+      );
+      setLiveClasses(liveClassResponse.data.liveClasses || []);
     } catch (error) {
       console.error("❌ [StudentDashboard] Error fetching data:", error);
     } finally {
@@ -139,6 +153,25 @@ const StudentDashboard = () => {
                 className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150"
               >
                 My Courses
+              </Link>
+              <Link
+                to="/live-classes"
+                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center"
+              >
+                <svg
+                  className="h-5 w-5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                Live Classes
               </Link>
               <Link
                 to="/profile"
@@ -328,6 +361,29 @@ const StudentDashboard = () => {
             </Link>
 
             <Link
+              to="/live-classes"
+              className="flex items-center p-4 border-2 border-red-500 rounded-lg hover:bg-red-50 transition duration-150"
+            >
+              <svg
+                className="h-8 w-8 text-red-600 mr-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              <div>
+                <p className="font-semibold text-gray-900">Live Classes</p>
+                <p className="text-sm text-gray-600">Join upcoming classes</p>
+              </div>
+            </Link>
+
+            <Link
               to="/my-grades"
               className="flex items-center p-4 border-2 border-green-500 rounded-lg hover:bg-green-50 transition duration-150"
             >
@@ -441,6 +497,53 @@ const StudentDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Live Classes Section */}
+        <section className="mt-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Live Classes</h2>
+          {liveClasses.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-6 text-gray-500">
+              No live classes scheduled.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {liveClasses.map((lc) => (
+                <div
+                  key={lc._id}
+                  className="bg-white rounded-lg shadow p-6 flex flex-col"
+                >
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    {lc.title}
+                  </h3>
+                  <p className="text-gray-600 mb-1">
+                    Course: {lc.course?.title}
+                  </p>
+                  <p className="text-gray-600 mb-1">
+                    Teacher: {lc.teacher?.name}
+                  </p>
+                  <p className="text-gray-500 text-sm mb-2">
+                    Scheduled: {new Date(lc.scheduledAt).toLocaleString()}
+                  </p>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mb-2 ${
+                      lc.status === "live"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {lc.status === "live" ? "LIVE" : "Scheduled"}
+                  </span>
+                  <Link
+                    to={`/video-call/${lc._id}`}
+                    className="mt-auto bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-150 shadow-sm text-center"
+                  >
+                    Join Now
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );

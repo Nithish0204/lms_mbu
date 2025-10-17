@@ -23,12 +23,14 @@ const courseRoutes = require("./routes/courseRoutes");
 const assignmentRoutes = require("./routes/assignmentRoutes");
 const gradeRoutes = require("./routes/gradeRoutes");
 const enrollmentRoutes = require("./routes/enrollmentRoutes");
+const liveClassRoutes = require("./routes/liveClassRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/grades", gradeRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
+app.use("/api/live-classes", liveClassRoutes);
 
 const PORT = process.env.PORT || 5000;
 

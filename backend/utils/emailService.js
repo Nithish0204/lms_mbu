@@ -367,6 +367,82 @@ exports.sendAssignmentNotificationToStudents = async (
 /**
  * Send live class notification to students
  */
+/**
+ * Send live class notification to a single student
+ */
+exports.sendLiveClassNotification = async (
+  student,
+  liveClass,
+  course,
+  teacher
+) => {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || "LMS Platform <noreply@lms.com>",
+    to: student.email,
+    subject: `🎥 Live Class Scheduled: ${liveClass.title} | ${course.title}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; text-align: center;">🔴 Live Class Scheduled!</h1>
+        </div>
+        
+        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+          <h2 style="color: #1f2937;">Hi ${student.name}! 👋</h2>
+          
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+            Don't miss it! Your instructor has scheduled a live class for <strong>${
+              course.title
+            }</strong>.
+          </p>
+          
+          <div style="background: white; padding: 25px; border-radius: 8px; margin: 25px 0; border: 2px solid #ef4444;">
+            <h3 style="margin: 0 0 15px 0; color: #dc2626; font-size: 20px;">${
+              liveClass.title
+            }</h3>
+            ${
+              liveClass.description
+                ? `<p style="margin: 10px 0; color: #6b7280; line-height: 1.6;">${liveClass.description}</p>`
+                : ""
+            }
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 8px 0; color: #1f2937; font-size: 18px;">🕒 <strong>${new Date(
+                liveClass.scheduledAt
+              ).toLocaleString()}</strong></p>
+              <p style="margin: 8px 0; color: #1f2937;">⏱️ <strong>Duration:</strong> ${
+                liveClass.duration
+              } minutes</p>
+              <p style="margin: 8px 0; color: #1f2937;">👨‍🏫 <strong>Instructor:</strong> ${
+                teacher.name
+              }</p>
+            </div>
+          </div>
+          
+          <div style="background: #fee2e2; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+            <p style="margin: 0; color: #991b1b; font-size: 14px;">
+              📅 <strong>Mark your calendar!</strong> You'll receive a reminder before the class starts.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${
+              process.env.FRONTEND_URL || "http://localhost:3000"
+            }/live-classes" 
+               style="display: inline-block; padding: 15px 40px; background: #ef4444; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              View Live Classes
+            </a>
+          </div>
+        </div>
+      </div>
+    `,
+  };
+
+  return await sendEmail(mailOptions);
+};
+
+/**
+ * Send live class notifications to multiple students
+ */
 exports.sendLiveClassNotificationToStudents = async (
   students,
   liveClass,

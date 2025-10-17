@@ -166,7 +166,13 @@ exports.getCourseEnrollments = async (req, res) => {
     }
 
     console.log("🔍 Fetching enrollments...");
-    const enrollments = await Enrollment.find({ course: courseId })
+    const enrollments = await Enrollment.find({
+      course: courseId,
+      $or: [
+        { status: "active" },
+        { status: { $exists: false } }, // legacy enrollments
+      ],
+    })
       .populate("student", "name email")
       .sort({ enrolledAt: -1 });
 

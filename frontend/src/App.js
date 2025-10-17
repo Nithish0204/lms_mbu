@@ -16,6 +16,8 @@ import BrowseCourses from "./components/BrowseCourses";
 import Profile from "./components/Profile";
 import Assignments from "./components/Assignments";
 import Grades from "./components/Grades";
+import LiveClasses from "./components/LiveClasses";
+import VideoCall from "./components/VideoCall";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function Navbar() {
@@ -230,7 +232,9 @@ function AppContent() {
     location.pathname === "/courses" ||
     location.pathname === "/assignments" ||
     location.pathname === "/grades" ||
-    location.pathname === "/profile";
+    location.pathname === "/profile" ||
+    location.pathname === "/live-classes" ||
+    location.pathname.startsWith("/video-call/");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -300,6 +304,22 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Grades />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/live-classes"
+          element={
+            <ProtectedRoute>
+              <LiveClasses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/video-call/:id"
+          element={
+            <ProtectedRoute>
+              <VideoCall />
             </ProtectedRoute>
           }
         />

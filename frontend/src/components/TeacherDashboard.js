@@ -278,6 +278,25 @@ const TeacherDashboard = () => {
                 My Courses
               </Link>
               <Link
+                to="/live-classes"
+                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center"
+              >
+                <svg
+                  className="h-5 w-5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                Live Classes
+              </Link>
+              <Link
                 to="/profile"
                 className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center"
               >
@@ -360,7 +379,9 @@ const TeacherDashboard = () => {
                 <p className="text-gray-600 text-sm font-medium">
                   Total Students
                 </p>
-                <p className="text-3xl font-bold text-secondary-600 mt-2">0</p>
+                <p className="text-3xl font-bold text-secondary-600 mt-2">
+                  {Object.values(enrollmentCounts).reduce((a, b) => a + b, 0)}
+                </p>
               </div>
               <div className="h-12 w-12 bg-secondary-100 rounded-lg flex items-center justify-center">
                 <svg
@@ -461,6 +482,29 @@ const TeacherDashboard = () => {
               <div>
                 <p className="font-semibold text-gray-900">Create Course</p>
                 <p className="text-sm text-gray-600">Add a new course</p>
+              </div>
+            </Link>
+
+            <Link
+              to="/live-classes"
+              className="flex items-center p-4 border-2 border-red-500 rounded-lg hover:bg-red-50 transition duration-150"
+            >
+              <svg
+                className="h-8 w-8 text-red-600 mr-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              <div>
+                <p className="font-semibold text-gray-900">Live Classes</p>
+                <p className="text-sm text-gray-600">Schedule & host classes</p>
               </div>
             </Link>
 
