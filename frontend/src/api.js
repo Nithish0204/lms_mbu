@@ -30,6 +30,7 @@ export const authAPI = {
   login: (credentials) => api.post("/auth/login", credentials),
   logout: () => api.post("/auth/logout"),
   getMe: () => api.get("/auth/me"),
+  verifyOtp: ({ email, otp }) => api.post("/auth/verify-otp", { email, otp }),
 };
 
 // Course API

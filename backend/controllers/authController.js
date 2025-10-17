@@ -1,3 +1,68 @@
+// @desc    Verify OTP for email verification
+// @route   POST /api/auth/verify-otp
+// @access  Public
+exports.verifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) {
+    return res
+      .status(400)
+      .json({ success: false, msg: "Email and OTP are required" });
+  }
+  try {
+    const user = await User.findOne({ email }).select(
+      "+otp +otpExpiry +isVerified"
+    );
+    if (!user) {
+      return res.status(400).json({ success: false, msg: "User not found" });
+    }
+    if (user.isVerified) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "User already verified" });
+    }
+    if (!user.otp || !user.otpExpiry) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "No OTP found. Please register again." });
+    }
+    if (user.otp !== otp) {
+      return res.status(400).json({ success: false, msg: "Invalid OTP" });
+    }
+    if (user.otpExpiry < new Date()) {
+      return res
+        .status(400)
+        .json({ success: false, msg: "OTP expired. Please register again." });
+    }
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE }
+    );
+
+    return res.json({
+      success: true,
+      msg: "Email verified successfully! Redirecting to dashboard...",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("❌ OTP VERIFICATION ERROR:", error);
+    return res
+      .status(500)
+      .json({ success: false, msg: "Server error", error: error.message });
+  }
+};
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -61,38 +126,36 @@ exports.register = async (req, res, next) => {
     }
     console.log("✅ Email is available");
 
-    // Create a new user
-    console.log("Creating new user in database...");
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+    // Create a new user with OTP and isVerified false
+    console.log("Creating new user in database with OTP...");
     user = await User.create({
       name,
       email: cleanEmail,
       password,
       role,
+      otp,
+      otpExpiry,
+      isVerified: false,
     });
     console.log("✅ User created successfully!");
     console.log("New user ID:", user._id);
     console.log("User role:", user.role);
+    console.log("OTP for verification:", otp);
 
-    // Send welcome email (asynchronously - don't wait for it)
-    sendWelcomeEmail(user).catch((error) => {
-      console.error("⚠️ Failed to send welcome email:", error);
-      // Don't fail registration if email fails
+    // Send OTP email (asynchronously)
+    const { sendOtpEmail } = require("../utils/emailService");
+    sendOtpEmail(user, otp).catch((error) => {
+      console.error("⚠️ Failed to send OTP email:", error);
     });
 
-    // Create token
-    console.log("Generating JWT token...");
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: process.env.JWT_EXPIRE,
-      }
-    );
-    console.log("✅ JWT token generated");
-
+    // Respond with success (but not logged in yet)
     const responseData = {
       success: true,
-      token,
+      msg: "Registration successful. Please verify your email with the OTP sent.",
       user: {
         id: user._id,
         name: user.name,

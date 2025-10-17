@@ -1,3 +1,34 @@
+/**
+ * Send OTP email for verification
+ */
+exports.sendOtpEmail = async (user, otp) => {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || "LMS Platform <noreply@lms.com>",
+    to: user.email,
+    subject: "🔐 Verify Your Email - LMS Platform OTP",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; text-align: center;">Verify Your Email</h1>
+        </div>
+        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+          <h2 style="color: #1f2937;">Hello ${user.name}! 👋</h2>
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+            Thank you for registering on LMS Platform.<br>
+            Please verify your email address by entering the following OTP:
+          </p>
+          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; text-align: center;">
+            <span style="font-size: 2.5em; letter-spacing: 8px; color: #667eea; font-weight: bold;">${otp}</span>
+          </div>
+          <p style="color: #4b5563; font-size: 16px;">
+            This OTP is valid for 10 minutes. If you did not request this, please ignore this email.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+  return await sendEmail(mailOptions);
+};
 const nodemailer = require("nodemailer");
 
 /**

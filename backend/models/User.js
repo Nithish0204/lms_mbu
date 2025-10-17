@@ -1,30 +1,43 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
+  // OTP for email verification
+  otp: {
+    type: String,
+    select: false,
+  },
+  otpExpiry: {
+    type: Date,
+    select: false,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   name: {
     type: String,
-    required: [true, 'Please provide a name'],
+    required: [true, "Please provide a name"],
   },
   email: {
     type: String,
-    required: [true, 'Please provide an email'],
+    required: [true, "Please provide an email"],
     unique: true,
     match: [
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email',
+      "Please provide a valid email",
     ],
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
+    required: [true, "Please provide a password"],
     minlength: 6,
     select: false, // Prevents password from being sent back in queries
   },
   role: {
     type: String,
-    enum: ['Student', 'Teacher'],
-    required: [true, 'Please provide a role'],
+    enum: ["Student", "Teacher"],
+    required: [true, "Please provide a role"],
   },
   createdAt: {
     type: Date,
@@ -33,9 +46,9 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Middleware to hash password before saving
-UserSchema.pre('save', async function (next) {
+UserSchema.pre("save", async function (next) {
   // Only run this function if password was actually modified
-  if (!this.isModified('password')) {
+  if (!this.isModified("password")) {
     next();
   }
 
@@ -45,6 +58,6 @@ UserSchema.pre('save', async function (next) {
   next();
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model("User", UserSchema);
 
 module.exports = User;
