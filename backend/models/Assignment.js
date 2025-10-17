@@ -1,0 +1,15 @@
+const mongoose = require("mongoose");
+
+const AssignmentSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String },
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course",
+    required: true,
+  },
+  dueDate: { type: Date },
+  createdAt: { type: Date, default: Date.now },
+});
+
+module.exports = mongoose.model("Assignment", AssignmentSchema);

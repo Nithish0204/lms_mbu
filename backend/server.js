@@ -1,10 +1,10 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db'); // You'll create this next
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const connectDB = require("./config/db");
 
-// Load env vars
-dotenv.config({ path: './config/config.env' });
+// Load env vars from .env file in backend root
+dotenv.config();
 
 // Connect to database
 connectDB();
@@ -18,9 +18,17 @@ app.use(express.json());
 app.use(cors());
 
 // Mount routers
-const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
+const authRoutes = require("./routes/authRoutes");
+const courseRoutes = require("./routes/courseRoutes");
+const assignmentRoutes = require("./routes/assignmentRoutes");
+const gradeRoutes = require("./routes/gradeRoutes");
+const enrollmentRoutes = require("./routes/enrollmentRoutes");
 
+app.use("/api/auth", authRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/assignments", assignmentRoutes);
+app.use("/api/grades", gradeRoutes);
+app.use("/api/enrollments", enrollmentRoutes);
 
 const PORT = process.env.PORT || 5000;
 
