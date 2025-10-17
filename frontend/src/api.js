@@ -59,8 +59,14 @@ export const enrollmentAPI = {
 
 // Assignment API
 export const assignmentAPI = {
-  createAssignment: (assignmentData) =>
-    api.post("/assignments", assignmentData),
+  createAssignment: (assignmentData) => {
+    // Check if it's FormData (with files) or regular object
+    const headers =
+      assignmentData instanceof FormData
+        ? { "Content-Type": "multipart/form-data" }
+        : {};
+    return api.post("/assignments", assignmentData, { headers });
+  },
   getAssignmentsByCourse: (courseId) =>
     api.get(`/assignments/course/${courseId}`),
   getAssignment: (id) => api.get(`/assignments/${id}`),
@@ -80,17 +86,14 @@ export const submissionAPI = {
   getMySubmissions: () => api.get("/submissions/my-submissions"),
   getSubmissionsByAssignment: (assignmentId) =>
     api.get(`/submissions/assignment/${assignmentId}`),
-  getSubmissionsByCourse: (courseId) =>
-    api.get(`/submissions/course/${courseId}`),
   getSubmission: (id) => api.get(`/submissions/${id}`),
-  updateSubmission: (id, formData) => {
-    return api.put(`/submissions/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-  },
   deleteSubmission: (id) => api.delete(`/submissions/${id}`),
-  downloadSubmission: (id) =>
-    api.get(`/submissions/${id}/download`, { responseType: "blob" }),
+  gradeSubmission: (id, gradeData) =>
+    api.put(`/submissions/${id}/grade`, gradeData),
+  downloadFile: (submissionId, fileIndex) =>
+    api.get(`/submissions/${submissionId}/download/${fileIndex}`, {
+      responseType: "blob",
+    }),
 };
 
 // Grade API
@@ -114,9 +117,27 @@ export const liveClassAPI = {
   getMyLiveClasses: () => api.get("/live-classes/my-classes"),
   getMyScheduledClasses: () => api.get("/live-classes/my-scheduled"),
   joinLiveClass: (id) => api.get(`/live-classes/${id}/join`),
-  getLiveClass: (id) => api.get(`/live-classes/${id}`),
   endLiveClass: (id) => api.put(`/live-classes/${id}/end`),
   deleteLiveClass: (id) => api.delete(`/live-classes/${id}`),
+};
+
+// Assessment API
+export const assessmentAPI = {
+  createAssessment: (assessmentData) =>
+    api.post("/assessments", assessmentData),
+  getAssessmentsByCourse: (courseId) =>
+    api.get(`/assessments/course/${courseId}`),
+  getAssessment: (id) => api.get(`/assessments/${id}`),
+  updateAssessment: (id, assessmentData) =>
+    api.put(`/assessments/${id}`, assessmentData),
+  deleteAssessment: (id) => api.delete(`/assessments/${id}`),
+  submitAssessment: (id, answers) =>
+    api.post(`/assessments/${id}/submit`, { answers }),
+  getAssessmentSubmissions: (id) => api.get(`/assessments/${id}/submissions`),
+  gradeSubmission: (submissionId, gradingData) =>
+    api.put(`/assessments/submissions/${submissionId}/grade`, gradingData),
+  getMySubmissions: () => api.get("/assessments/my-submissions"),
+  getAssessmentAnalytics: (id) => api.get(`/assessments/${id}/analytics`),
 };
 
 export default api;

@@ -526,4 +526,102 @@ exports.sendLiveClassNotificationToStudents = async (
   return { success: true, sent: successCount, total: students.length };
 };
 
+/**
+ * Send grade notification email to student
+ */
+exports.sendGradeNotificationEmail = async (
+  student,
+  assignment,
+  submission,
+  teacher
+) => {
+  const percentage = (
+    (submission.grade / assignment.totalPoints) *
+    100
+  ).toFixed(1);
+  const gradeStatus =
+    percentage >= 70
+      ? "Great job!"
+      : percentage >= 50
+      ? "Good effort!"
+      : "Keep practicing!";
+  const statusColor =
+    percentage >= 70 ? "#10b981" : percentage >= 50 ? "#f59e0b" : "#ef4444";
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || "LMS Platform <noreply@lms.com>",
+    to: student.email,
+    subject: `📊 Your assignment "${assignment.title}" has been graded`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; text-align: center;">Assignment Graded! 📊</h1>
+        </div>
+        
+        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+          <h2 style="color: #1f2937;">Hello ${student.name}! 👋</h2>
+          
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+            Your assignment has been graded by ${teacher.name}.
+          </p>
+
+          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+            <h3 style="color: #1f2937; margin-top: 0;">Assignment Details</h3>
+            <p style="color: #4b5563; margin: 5px 0;"><strong>Title:</strong> ${
+              assignment.title
+            }</p>
+            <p style="color: #4b5563; margin: 5px 0;"><strong>Course:</strong> ${
+              assignment.course?.title || "N/A"
+            }</p>
+            ${
+              submission.isLate
+                ? '<p style="color: #ef4444; margin: 5px 0;"><strong>⚠️ Status:</strong> Submitted Late</p>'
+                : ""
+            }
+          </div>
+
+          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor}; text-align: center;">
+            <h3 style="color: #1f2937; margin-top: 0;">Your Grade</h3>
+            <div style="font-size: 3em; font-weight: bold; color: ${statusColor}; margin: 10px 0;">
+              ${submission.grade}/${assignment.totalPoints}
+            </div>
+            <div style="font-size: 1.5em; color: #6b7280;">
+              ${percentage}%
+            </div>
+            <p style="color: ${statusColor}; font-weight: bold; margin-top: 10px;">
+              ${gradeStatus}
+            </p>
+          </div>
+
+          ${
+            submission.feedback
+              ? `
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <h4 style="color: #92400e; margin-top: 0;">Teacher's Feedback:</h4>
+            <p style="color: #78350f; font-style: italic;">${submission.feedback}</p>
+          </div>
+          `
+              : ""
+          }
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${
+              process.env.FRONTEND_URL || "http://localhost:3000"
+            }/grades" 
+               style="display: inline-block; padding: 15px 40px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              View All Grades
+            </a>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 14px;">
+            <p>Keep up the great work! 🎓</p>
+          </div>
+        </div>
+      </div>
+    `,
+  };
+
+  return sendEmail(mailOptions);
+};
+
 console.log("📧 Email service loaded");

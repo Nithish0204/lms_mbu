@@ -18,6 +18,10 @@ import Assignments from "./components/Assignments";
 import Grades from "./components/Grades";
 import LiveClasses from "./components/LiveClasses";
 import VideoCall from "./components/VideoCall";
+import SubmitAssignment from "./components/SubmitAssignment";
+import ViewSubmissions from "./components/ViewSubmissions";
+import CreateAssignment from "./components/CreateAssignment";
+import CourseDetail from "./components/CourseDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function Navbar() {
@@ -231,6 +235,12 @@ function AppContent() {
     location.pathname === "/my-courses" ||
     location.pathname === "/courses" ||
     location.pathname === "/assignments" ||
+    location.pathname === "/my-assignments" ||
+    location.pathname === "/create-assignment" ||
+    location.pathname.startsWith("/create-assignment/") ||
+    location.pathname.startsWith("/submit-assignment/") ||
+    location.pathname.startsWith("/view-submissions/") ||
+    location.pathname.startsWith("/course/") ||
     location.pathname === "/grades" ||
     location.pathname === "/profile" ||
     location.pathname === "/live-classes" ||
@@ -276,6 +286,14 @@ function AppContent() {
           }
         />
         <Route
+          path="/course/:id"
+          element={
+            <ProtectedRoute>
+              <CourseDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/courses"
           element={
             <ProtectedRoute allowedRoles={["Student"]}>
@@ -300,6 +318,30 @@ function AppContent() {
           }
         />
         <Route
+          path="/my-assignments"
+          element={
+            <ProtectedRoute>
+              <Assignments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-assignment"
+          element={
+            <ProtectedRoute allowedRoles={["Teacher"]}>
+              <CreateAssignment />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-assignment/:courseId"
+          element={
+            <ProtectedRoute allowedRoles={["Teacher"]}>
+              <CreateAssignment />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/grades"
           element={
             <ProtectedRoute>
@@ -320,6 +362,22 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <VideoCall />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/submit-assignment/:assignmentId"
+          element={
+            <ProtectedRoute allowedRoles={["Student"]}>
+              <SubmitAssignment />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/view-submissions/:assignmentId"
+          element={
+            <ProtectedRoute allowedRoles={["Teacher"]}>
+              <ViewSubmissions />
             </ProtectedRoute>
           }
         />

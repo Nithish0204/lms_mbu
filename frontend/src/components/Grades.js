@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { gradeAPI } from "../api";
+import axios from "axios";
 
 const Grades = () => {
   const [user, setUser] = useState(null);
@@ -17,11 +17,22 @@ const Grades = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Fetch grades using centralized API
+    // Fetch graded submissions
     const fetchGrades = async () => {
       try {
-        const response = await gradeAPI.getMyGrades();
-        setGrades(response.data.grades || []);
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          "http://localhost:5001/api/submissions/my-submissions",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        // Filter only graded submissions
+        const gradedSubmissions =
+          response.data.submissions?.filter(
+            (sub) => sub.grade !== undefined && sub.grade !== null
+          ) || [];
+        setGrades(gradedSubmissions);
       } catch (error) {
         console.error("Failed to fetch grades:", error);
       }
@@ -64,12 +75,47 @@ const Grades = () => {
           ) : (
             <ul className="space-y-4">
               {grades.map((g) => (
-                <li key={g._id} className="border-b pb-2">
-                  <div className="font-semibold text-gray-900">
-                    {g.courseTitle}
+                <li key={g._id} className="border-b pb-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 text-lg">
+                        {g.assignment?.title || "Assignment"}
+                      </div>
+                      <div className="text-gray-600 text-sm mt-1">
+                        Course: {g.assignment?.course?.title || "N/A"}
+                      </div>
+                      <div className="text-gray-600 text-sm">
+                        Submitted:{" "}
+                        {new Date(g.submittedAt).toLocaleDateString()}
+                        {g.isLate && (
+                          <span className="ml-2 text-red-600 font-medium">
+                            (Late)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="text-2xl font-bold text-primary-600">
+                        {g.grade}
+                        <span className="text-sm text-gray-500">
+                          /{g.assignment?.totalPoints || 100}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {(
+                          (g.grade / (g.assignment?.totalPoints || 100)) *
+                          100
+                        ).toFixed(1)}
+                        %
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-gray-600 text-sm">Grade: {g.grade}</div>
-                  <div className="text-gray-700 mt-1">{g.comments}</div>
+                  {g.feedback && (
+                    <div className="mt-2 text-gray-700 bg-gray-50 p-3 rounded">
+                      <span className="font-medium">Feedback: </span>
+                      {g.feedback}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

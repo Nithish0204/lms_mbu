@@ -1,15 +1,198 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { courseAPI, enrollmentAPI } from "../api";
+import { courseAPI, enrollmentAPI, assignmentAPI, submissionAPI } from "../api";
+
+// Assignment Card Component
+const AssignmentCard = ({
+  assignment,
+  submissions = [],
+  onDelete,
+  deleting,
+}) => {
+  const totalSubmissions = submissions.length;
+  const gradedSubmissions = submissions.filter(
+    (s) => s.grade !== null && s.grade !== undefined
+  ).length;
+  const pendingSubmissions = totalSubmissions - gradedSubmissions;
+  const isOverdue = new Date(assignment.dueDate) < new Date();
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <div className="flex items-start justify-between">
+            <h3 className="font-semibold text-gray-900 mb-1">
+              {assignment.title}
+            </h3>
+            {assignment.status === "published" ? (
+              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                Published
+              </span>
+            ) : (
+              <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
+                Draft
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+            {assignment.description}
+          </p>
+          <div className="flex items-center space-x-4 text-xs text-gray-500">
+            <div className="flex items-center">
+              <svg
+                className="h-4 w-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <span>
+                Due: {new Date(assignment.dueDate).toLocaleDateString()}
+              </span>
+              {isOverdue && (
+                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
+                  Overdue
+                </span>
+              )}
+            </div>
+            <div className="flex items-center">
+              <svg
+                className="h-4 w-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>{assignment.totalPoints} points</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Submission Stats */}
+      <div className="bg-gray-50 rounded-lg p-3 mb-3">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-600">
+              {totalSubmissions}
+            </p>
+            <p className="text-xs text-gray-600">Total Submissions</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-600">
+              {gradedSubmissions}
+            </p>
+            <p className="text-xs text-gray-600">Graded</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-orange-600">
+              {pendingSubmissions}
+            </p>
+            <p className="text-xs text-gray-600">Pending</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex space-x-2">
+        <Link
+          to={`/view-submissions/${assignment._id}`}
+          className="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-center py-2 rounded-lg text-sm font-medium transition"
+        >
+          {pendingSubmissions > 0 ? (
+            <>Grade ({pendingSubmissions})</>
+          ) : totalSubmissions > 0 ? (
+            "View All"
+          ) : (
+            "View"
+          )}
+        </Link>
+        <button
+          onClick={() => onDelete(assignment._id, assignment.title)}
+          disabled={deleting}
+          className="px-4 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white py-2 rounded-lg text-sm font-medium transition flex items-center justify-center"
+        >
+          {deleting ? (
+            <svg
+              className="animate-spin h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const TeacherDashboard = () => {
   const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
   const [enrollmentCounts, setEnrollmentCounts] = useState({});
+  const [assignments, setAssignments] = useState([]);
+  const [submissionStats, setSubmissionStats] = useState({
+    total: 0,
+    pending: 0, // Students who haven't submitted
+    late: 0, // Students who submitted late
+    done: 0, // Students who submitted on time
+    ungraded: 0, // Submissions that need grading
+  });
+  const [assignmentSubmissions, setAssignmentSubmissions] = useState({});
+  const [allSubmissions, setAllSubmissions] = useState([]);
+  const [pendingStudents, setPendingStudents] = useState([]); // Students who haven't submitted any assignments
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState({});
+  const [deletingAssignment, setDeletingAssignment] = useState({});
   const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [showSubmissionsModal, setShowSubmissionsModal] = useState(false);
+  const [showAssignmentsModal, setShowAssignmentsModal] = useState(false);
+  const [modalSubmissions, setModalSubmissions] = useState([]);
+  const [modalTitle, setModalTitle] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [
+    selectedAssignmentForSubmissions,
+    setSelectedAssignmentForSubmissions,
+  ] = useState(null);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [removingStudent, setRemovingStudent] = useState({});
@@ -101,6 +284,148 @@ const TeacherDashboard = () => {
     console.log("✅ [TeacherDashboard] Enrollment counts loaded:", counts);
   };
 
+  const fetchAssignmentsAndSubmissions = async () => {
+    console.log(
+      "=== [TeacherDashboard] Fetching assignments and submissions ==="
+    );
+    try {
+      // Fetch all teacher's assignments
+      const assignmentsRes = await assignmentAPI.getMyAssignments();
+      const teacherAssignments = assignmentsRes.data.assignments || [];
+      setAssignments(teacherAssignments);
+      console.log(`✅ Found ${teacherAssignments.length} assignments`);
+
+      // Fetch submission stats for each assignment
+      let totalEnrolled = 0;
+      let totalSubmitted = 0;
+      let lateSubmissions = 0;
+      let doneSubmissions = 0;
+      let ungradedSubmissions = 0;
+      const submissionsMap = {};
+      const allSubmissionsList = [];
+      const allPendingStudents = [];
+
+      for (const assignment of teacherAssignments) {
+        try {
+          // Get enrolled students for this course
+          const courseId =
+            typeof assignment.course === "object"
+              ? assignment.course._id
+              : assignment.course;
+
+          const enrollmentsRes = await enrollmentAPI.getCourseEnrollments(
+            courseId
+          );
+          const enrolledCount = enrollmentsRes.data.count || 0;
+          const enrolledStudents = enrollmentsRes.data.enrollments || [];
+
+          // Get submissions for this assignment
+          const submissionsRes = await submissionAPI.getSubmissionsByAssignment(
+            assignment._id
+          );
+          const submissions = submissionsRes.data.submissions || [];
+          submissionsMap[assignment._id] = submissions;
+
+          // Add assignment info to each submission for display
+          const submissionsWithAssignment = submissions.map((s) => ({
+            ...s,
+            assignmentTitle: assignment.title,
+            assignmentDueDate: assignment.dueDate,
+          }));
+          allSubmissionsList.push(...submissionsWithAssignment);
+
+          // Find students who haven't submitted this assignment
+          const submittedStudentIds = submissions.map((s) =>
+            typeof s.student === "object" ? s.student._id : s.student
+          );
+
+          const pendingForThisAssignment = enrolledStudents
+            .filter((enrollment) => {
+              const studentId =
+                typeof enrollment.student === "object"
+                  ? enrollment.student._id
+                  : enrollment.student;
+              return !submittedStudentIds.includes(studentId);
+            })
+            .map((enrollment) => ({
+              student: enrollment.student,
+              assignmentTitle: assignment.title,
+              assignmentId: assignment._id,
+              dueDate: assignment.dueDate,
+              courseTitle:
+                typeof assignment.course === "object"
+                  ? assignment.course.title
+                  : "Course",
+            }));
+
+          allPendingStudents.push(...pendingForThisAssignment);
+
+          // Calculate stats
+          totalEnrolled += enrolledCount;
+          totalSubmitted += submissions.length;
+          lateSubmissions += submissions.filter((s) => s.isLate).length;
+          doneSubmissions += submissions.filter((s) => !s.isLate).length;
+          ungradedSubmissions += submissions.filter(
+            (s) => s.grade === null || s.grade === undefined
+          ).length;
+        } catch (error) {
+          console.error(
+            `❌ Error fetching submissions for assignment ${assignment._id}:`,
+            error
+          );
+          submissionsMap[assignment._id] = [];
+        }
+      }
+
+      const pendingCount = totalEnrolled - totalSubmitted;
+
+      setAssignmentSubmissions(submissionsMap);
+      setAllSubmissions(allSubmissionsList);
+      setPendingStudents(allPendingStudents);
+      setSubmissionStats({
+        total: totalSubmitted,
+        pending: pendingCount > 0 ? pendingCount : 0,
+        late: lateSubmissions,
+        done: doneSubmissions,
+        ungraded: ungradedSubmissions,
+      });
+      console.log(
+        `✅ Submission stats - Total Enrolled: ${totalEnrolled}, Submitted: ${totalSubmitted}, Pending: ${pendingCount}, Late: ${lateSubmissions}, Done: ${doneSubmissions}, Ungraded: ${ungradedSubmissions}, Pending Students: ${allPendingStudents.length}`
+      );
+    } catch (error) {
+      console.error("❌ Error fetching assignments/submissions:", error);
+    }
+  };
+
+  // Fetch assignments when user is loaded
+  useEffect(() => {
+    if (user && user.role === "Teacher") {
+      fetchAssignmentsAndSubmissions();
+    }
+  }, [user]);
+
+  // Refresh data when page becomes visible (e.g., returning from grading page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === "visible" &&
+        user &&
+        user.role === "Teacher"
+      ) {
+        console.log("🔄 [TeacherDashboard] Page visible, refreshing data...");
+        fetchAssignmentsAndSubmissions();
+        if (courses.length > 0) {
+          fetchEnrollmentCounts(courses);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [user, courses]);
+
   const handleManageStudents = async (course) => {
     console.log(
       "🔍 [TeacherDashboard] Managing students for course:",
@@ -156,6 +481,9 @@ const TeacherDashboard = () => {
         });
       }
 
+      // Refresh assignment/submission stats since enrollment affects pending counts
+      fetchAssignmentsAndSubmissions();
+
       alert(`${studentName} has been removed from the course`);
     } catch (err) {
       console.error("❌ [TeacherDashboard] Remove student error:", err);
@@ -189,6 +517,109 @@ const TeacherDashboard = () => {
     } finally {
       setDeleting({ ...deleting, [courseId]: false });
     }
+  };
+
+  const handleDeleteAssignment = async (assignmentId, assignmentTitle) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${assignmentTitle}"? This will also remove all student submissions.`
+      )
+    ) {
+      return;
+    }
+
+    console.log(`🗑️ [TeacherDashboard] Deleting assignment ${assignmentId}...`);
+    setDeletingAssignment({ ...deletingAssignment, [assignmentId]: true });
+
+    try {
+      await assignmentAPI.deleteAssignment(assignmentId);
+      console.log("✅ [TeacherDashboard] Assignment deleted successfully");
+
+      // Remove from local state
+      setAssignments(assignments.filter((a) => a._id !== assignmentId));
+
+      // Remove submissions for this assignment
+      const updatedSubmissions = { ...assignmentSubmissions };
+      delete updatedSubmissions[assignmentId];
+      setAssignmentSubmissions(updatedSubmissions);
+
+      // Refresh all stats to ensure accuracy
+      fetchAssignmentsAndSubmissions();
+
+      alert("Assignment deleted successfully");
+    } catch (err) {
+      console.error("❌ [TeacherDashboard] Delete assignment error:", err);
+      alert(err.response?.data?.error || "Failed to delete assignment");
+    } finally {
+      setDeletingAssignment({ ...deletingAssignment, [assignmentId]: false });
+    }
+  };
+
+  const handleShowPendingSubmissions = () => {
+    // Show students who haven't submitted
+    setModalSubmissions(pendingStudents);
+    setModalTitle(
+      `Pending Submissions (${pendingStudents.length} students haven't submitted)`
+    );
+    setShowSubmissionsModal(true);
+  };
+
+  const handleShowLateSubmissions = () => {
+    const late = allSubmissions.filter((s) => s.isLate);
+    setModalSubmissions(late);
+    setModalTitle("Late Submissions");
+    setShowSubmissionsModal(true);
+  };
+
+  const handleShowDoneSubmissions = () => {
+    const done = allSubmissions.filter((s) => !s.isLate);
+    setModalSubmissions(done);
+    setModalTitle("Done on Time");
+    setShowSubmissionsModal(true);
+  };
+
+  const handleShowAssignments = () => {
+    setShowAssignmentsModal(true);
+  };
+
+  const handleShowAssignmentSubmissions = (assignment, submissionType) => {
+    const submissions = assignmentSubmissions[assignment._id] || [];
+    let filteredSubmissions = [];
+    let title = "";
+
+    switch (submissionType) {
+      case "total":
+        filteredSubmissions = submissions;
+        title = `All Submissions - ${assignment.title}`;
+        break;
+      case "pending":
+        filteredSubmissions = submissions.filter(
+          (s) => s.grade === null || s.grade === undefined
+        );
+        title = `Pending Submissions - ${assignment.title}`;
+        break;
+      case "graded":
+        filteredSubmissions = submissions.filter(
+          (s) => s.grade !== null && s.grade !== undefined
+        );
+        title = `Graded Submissions - ${assignment.title}`;
+        break;
+      default:
+        filteredSubmissions = submissions;
+        title = `Submissions - ${assignment.title}`;
+    }
+
+    const submissionsWithAssignment = filteredSubmissions.map((s) => ({
+      ...s,
+      assignmentTitle: assignment.title,
+      assignmentDueDate: assignment.dueDate,
+    }));
+
+    setSelectedAssignmentForSubmissions(assignment);
+    setModalSubmissions(submissionsWithAssignment);
+    setModalTitle(title);
+    setShowAssignmentsModal(false);
+    setShowSubmissionsModal(true);
   };
 
   const handleLogout = () => {
@@ -408,7 +839,9 @@ const TeacherDashboard = () => {
                 <p className="text-gray-600 text-sm font-medium">
                   Active Assignments
                 </p>
-                <p className="text-3xl font-bold text-green-600 mt-2">0</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {assignments.filter((a) => a.status === "published").length}
+                </p>
               </div>
               <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg
@@ -433,9 +866,11 @@ const TeacherDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">
-                  Pending Reviews
+                  Submissions to Grade
                 </p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">0</p>
+                <p className="text-3xl font-bold text-purple-600 mt-2">
+                  {submissionStats.ungraded || 0}
+                </p>
               </div>
               <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg
@@ -461,7 +896,7 @@ const TeacherDashboard = () => {
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             Quick Actions
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link
               to="/create-course"
               className="flex items-center p-4 border-2 border-primary-500 rounded-lg hover:bg-primary-50 transition duration-150"
@@ -554,12 +989,12 @@ const TeacherDashboard = () => {
               </div>
             </Link>
 
-            <Link
-              to="/grade-submissions"
-              className="flex items-center p-4 border-2 border-purple-500 rounded-lg hover:bg-purple-50 transition duration-150"
+            <button
+              onClick={handleShowAssignments}
+              className="flex items-center p-4 border-2 border-orange-500 rounded-lg hover:bg-orange-50 transition duration-150 w-full"
             >
               <svg
-                className="h-8 w-8 text-purple-600 mr-3"
+                className="h-8 w-8 text-orange-600 mr-3"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -568,14 +1003,64 @@ const TeacherDashboard = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <div>
-                <p className="font-semibold text-gray-900">Grade Submissions</p>
-                <p className="text-sm text-gray-600">Review student work</p>
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">View Assignments</p>
+                <p className="text-sm text-gray-600">
+                  {assignments.filter((a) => a.status === "published").length}{" "}
+                  active assignments
+                </p>
               </div>
-            </Link>
+            </button>
+
+            <div className="flex flex-col p-4 border-2 border-purple-500 rounded-lg bg-white">
+              <div className="flex items-center mb-3">
+                <svg
+                  className="h-8 w-8 text-purple-600 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                  />
+                </svg>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    Grade Submissions
+                  </p>
+                  <p className="text-xs text-gray-500">Click counts to view</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={handleShowPendingSubmissions}
+                  className="bg-orange-100 hover:bg-orange-200 text-orange-800 px-2 py-2 rounded-lg text-center transition"
+                >
+                  <p className="text-lg font-bold">{submissionStats.pending}</p>
+                  <p className="text-xs">Pending</p>
+                </button>
+                <button
+                  onClick={handleShowLateSubmissions}
+                  className="bg-red-100 hover:bg-red-200 text-red-800 px-2 py-2 rounded-lg text-center transition"
+                >
+                  <p className="text-lg font-bold">{submissionStats.late}</p>
+                  <p className="text-xs">Late</p>
+                </button>
+                <button
+                  onClick={handleShowDoneSubmissions}
+                  className="bg-green-100 hover:bg-green-200 text-green-800 px-2 py-2 rounded-lg text-center transition"
+                >
+                  <p className="text-lg font-bold">{submissionStats.done}</p>
+                  <p className="text-xs">Done</p>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -857,6 +1342,557 @@ const TeacherDashboard = () => {
           )}
         </div>
       </main>
+
+      {/* Assignments Modal */}
+      {showAssignmentsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[85vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 px-6 py-4 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-white">
+                  All Assignments & Submissions
+                </h2>
+                <p className="text-white text-sm opacity-90">
+                  {assignments.length} assignment
+                  {assignments.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAssignmentsModal(false)}
+                className="text-white hover:text-gray-200 transition"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[calc(85vh-8rem)]">
+              {assignments.length === 0 ? (
+                <div className="text-center py-8">
+                  <svg
+                    className="h-16 w-16 mx-auto text-gray-300 mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <p className="text-gray-500 text-lg mb-2">
+                    No assignments created yet
+                  </p>
+                  <Link
+                    to="/create-assignment"
+                    onClick={() => setShowAssignmentsModal(false)}
+                    className="text-orange-600 hover:text-orange-700 font-medium"
+                  >
+                    Create your first assignment
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {assignments.map((assignment) => {
+                    const submissions =
+                      assignmentSubmissions[assignment._id] || [];
+                    const totalSubmissions = submissions.length;
+                    const gradedSubmissions = submissions.filter(
+                      (s) => s.grade !== null && s.grade !== undefined
+                    ).length;
+                    const pendingSubmissions =
+                      totalSubmissions - gradedSubmissions;
+                    const isOverdue = new Date(assignment.dueDate) < new Date();
+
+                    return (
+                      <div
+                        key={assignment._id}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition"
+                      >
+                        {/* Assignment Header */}
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-2">
+                              <h3 className="font-semibold text-gray-900 text-lg">
+                                {assignment.title}
+                              </h3>
+                              <div className="flex items-center space-x-2">
+                                {assignment.status === "published" ? (
+                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                    Published
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
+                                    Draft
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {assignment.description}
+                            </p>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                              <div className="flex items-center">
+                                <svg
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                <span>
+                                  Due:{" "}
+                                  {new Date(
+                                    assignment.dueDate
+                                  ).toLocaleDateString()}
+                                </span>
+                                {isOverdue && (
+                                  <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
+                                    Overdue
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center">
+                                <svg
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span>{assignment.totalPoints} points</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Clickable Submission Stats */}
+                        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                          <p className="text-xs text-gray-600 font-medium mb-2">
+                            Click count to view submissions:
+                          </p>
+                          <div className="grid grid-cols-3 gap-3">
+                            <button
+                              onClick={() =>
+                                handleShowAssignmentSubmissions(
+                                  assignment,
+                                  "total"
+                                )
+                              }
+                              className="bg-blue-100 hover:bg-blue-200 text-blue-800 p-3 rounded-lg text-center transition"
+                            >
+                              <p className="text-2xl font-bold">
+                                {totalSubmissions}
+                              </p>
+                              <p className="text-xs">Total</p>
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleShowAssignmentSubmissions(
+                                  assignment,
+                                  "graded"
+                                )
+                              }
+                              className="bg-green-100 hover:bg-green-200 text-green-800 p-3 rounded-lg text-center transition"
+                            >
+                              <p className="text-2xl font-bold">
+                                {gradedSubmissions}
+                              </p>
+                              <p className="text-xs">Graded</p>
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleShowAssignmentSubmissions(
+                                  assignment,
+                                  "pending"
+                                )
+                              }
+                              className="bg-orange-100 hover:bg-orange-200 text-orange-800 p-3 rounded-lg text-center transition"
+                            >
+                              <p className="text-2xl font-bold">
+                                {pendingSubmissions}
+                              </p>
+                              <p className="text-xs">Pending</p>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex space-x-2">
+                          <Link
+                            to={`/view-submissions/${assignment._id}`}
+                            onClick={() => setShowAssignmentsModal(false)}
+                            className="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-center py-2 rounded-lg text-sm font-medium transition"
+                          >
+                            View & Grade All
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setShowAssignmentsModal(false);
+                              handleDeleteAssignment(
+                                assignment._id,
+                                assignment.title
+                              );
+                            }}
+                            disabled={deletingAssignment[assignment._id]}
+                            className="px-4 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white py-2 rounded-lg text-sm font-medium transition flex items-center justify-center"
+                          >
+                            {deletingAssignment[assignment._id] ? (
+                              <svg
+                                className="animate-spin h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                />
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                />
+                              </svg>
+                            ) : (
+                              <>
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
+              <Link
+                to="/create-assignment"
+                onClick={() => setShowAssignmentsModal(false)}
+                className="text-orange-600 hover:text-orange-700 font-medium text-sm"
+              >
+                + Create New Assignment
+              </Link>
+              <button
+                onClick={() => setShowAssignmentsModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition duration-150"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submissions Modal */}
+      {showSubmissionsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-white">{modalTitle}</h2>
+                <p className="text-white text-sm opacity-90">
+                  {modalSubmissions.length} submission
+                  {modalSubmissions.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowSubmissionsModal(false)}
+                className="text-white hover:text-gray-200 transition"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-8rem)]">
+              {modalSubmissions.length === 0 ? (
+                <div className="text-center py-8">
+                  <svg
+                    className="h-16 w-16 mx-auto text-gray-300 mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <p className="text-gray-500 text-lg">No data found</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {modalSubmissions.map((submission, index) => {
+                    // Check if this is a pending student (no submission) or actual submission
+                    const isPending =
+                      !submission.submittedAt && submission.assignmentId;
+
+                    return (
+                      <div
+                        key={isPending ? `pending-${index}` : submission._id}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center space-x-3 flex-1">
+                            {/* Student Avatar */}
+                            <div className="h-10 w-10 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-white font-bold text-sm">
+                                {submission.student?.name
+                                  ?.charAt(0)
+                                  .toUpperCase() || "S"}
+                              </span>
+                            </div>
+                            {/* Student Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2">
+                                <h3 className="font-semibold text-gray-900">
+                                  {submission.student?.name ||
+                                    "Unknown Student"}
+                                </h3>
+                                {!isPending && (
+                                  <Link
+                                    to={`/view-submissions/${submission.assignment}`}
+                                    className="px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded transition"
+                                  >
+                                    Grade
+                                  </Link>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 truncate">
+                                {submission.student?.email || "No email"}
+                              </p>
+                            </div>
+                          </div>
+                          {/* Status Badges */}
+                          <div className="flex space-x-2 flex-shrink-0">
+                            {isPending ? (
+                              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                                Not Submitted
+                              </span>
+                            ) : (
+                              <>
+                                {submission.isLate && (
+                                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                                    Late
+                                  </span>
+                                )}
+                                {submission.grade !== null &&
+                                submission.grade !== undefined ? (
+                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                    Graded: {submission.grade}
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                                    Not Graded
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Assignment Info */}
+                        <div className="bg-gray-50 rounded p-3 mb-2">
+                          <p className="font-medium text-gray-900 text-sm">
+                            {submission.assignmentTitle}
+                          </p>
+                          {isPending ? (
+                            <div className="flex items-center space-x-4 mt-1 text-xs text-gray-600">
+                              <div className="flex items-center">
+                                <svg
+                                  className="h-3 w-3 mr-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                Due:{" "}
+                                {new Date(submission.dueDate).toLocaleString()}
+                              </div>
+                              {submission.courseTitle && (
+                                <div className="flex items-center">
+                                  <svg
+                                    className="h-3 w-3 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                    />
+                                  </svg>
+                                  Course: {submission.courseTitle}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-4 mt-1 text-xs text-gray-600">
+                              <div className="flex items-center">
+                                <svg
+                                  className="h-3 w-3 mr-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                Submitted:{" "}
+                                {new Date(
+                                  submission.submittedAt
+                                ).toLocaleString()}
+                              </div>
+                              {submission.assignmentDueDate && (
+                                <div className="flex items-center">
+                                  <svg
+                                    className="h-3 w-3 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                  Due:{" "}
+                                  {new Date(
+                                    submission.assignmentDueDate
+                                  ).toLocaleString()}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Text Submission - only show if not pending */}
+                        {!isPending && submission.textSubmission && (
+                          <div className="mb-2">
+                            <p className="text-xs text-gray-600 font-medium mb-1">
+                              Text Submission:
+                            </p>
+                            <p className="text-sm text-gray-700 bg-blue-50 rounded p-2 line-clamp-3">
+                              {submission.textSubmission}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Files - only show if not pending */}
+                        {!isPending &&
+                          submission.files &&
+                          submission.files.length > 0 && (
+                            <div className="mb-2">
+                              <p className="text-xs text-gray-600 font-medium mb-1">
+                                Attached Files ({submission.files.length}):
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {submission.files.map((file, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                                  >
+                                    📎 File {idx + 1}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <button
+                onClick={() => setShowSubmissionsModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition duration-150"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Students Management Modal */}
       {showStudentsModal && (

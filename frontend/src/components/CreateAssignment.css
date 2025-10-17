@@ -1,0 +1,273 @@
+.create-assignment-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 2rem 1rem;
+}
+
+.create-assignment-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.back-button {
+  background: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+}
+
+.create-assignment-card h2 {
+  color: #333;
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 1rem;
+}
+
+.alert {
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.assignment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: #333;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="datetime-local"],
+.form-group select,
+.form-group textarea {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.75rem;
+  width: 100%;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group input[type="file"] {
+  border: 1px dashed #ddd;
+  border-radius: 6px;
+  padding: 0.75rem;
+  cursor: pointer;
+}
+
+.form-group input[type="file"]:hover {
+  border-color: #007bff;
+  background: #f8f9fa;
+}
+
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.checkbox-group span {
+  color: #333;
+  font-weight: 600;
+}
+
+.file-info {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.selected-files {
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  padding: 1rem;
+}
+
+.selected-files strong {
+  color: #333;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.selected-files ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.selected-files li {
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.selected-files li:before {
+  content: "📄";
+  position: absolute;
+  left: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #f0f0f0;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .create-assignment-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .create-assignment-card {
+    padding: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}

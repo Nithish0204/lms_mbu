@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { enrollmentAPI, courseAPI, liveClassAPI } from "../api";
+import {
+  enrollmentAPI,
+  courseAPI,
+  liveClassAPI,
+  assignmentAPI,
+  submissionAPI,
+} from "../api";
 
 const StudentDashboard = () => {
   const [user, setUser] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [availableCourses, setAvailableCourses] = useState([]);
   const [liveClasses, setLiveClasses] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [mySubmissions, setMySubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -61,6 +69,24 @@ const StudentDashboard = () => {
         liveClassResponse.data
       );
       setLiveClasses(liveClassResponse.data.liveClasses || []);
+
+      // Fetch assignments for student
+      console.log("📝 [StudentDashboard] Fetching assignments...");
+      const assignmentsResponse = await assignmentAPI.getMyAssignments();
+      console.log(
+        "✅ [StudentDashboard] Assignments:",
+        assignmentsResponse.data
+      );
+      setAssignments(assignmentsResponse.data.assignments || []);
+
+      // Fetch my submissions
+      console.log("📤 [StudentDashboard] Fetching my submissions...");
+      const submissionsResponse = await submissionAPI.getMySubmissions();
+      console.log(
+        "✅ [StudentDashboard] Submissions:",
+        submissionsResponse.data
+      );
+      setMySubmissions(submissionsResponse.data.submissions || []);
     } catch (error) {
       console.error("❌ [StudentDashboard] Error fetching data:", error);
     } finally {
@@ -76,6 +102,32 @@ const StudentDashboard = () => {
     console.log("✅ [StudentDashboard] localStorage cleared");
     console.log("🚀 [StudentDashboard] Navigating to login page");
     navigate("/login");
+  };
+
+  const isAssignmentSubmitted = (assignmentId) => {
+    return mySubmissions.some(
+      (submission) => submission.assignment._id === assignmentId
+    );
+  };
+
+  const getSubmissionForAssignment = (assignmentId) => {
+    return mySubmissions.find(
+      (submission) => submission.assignment._id === assignmentId
+    );
+  };
+
+  const isAssignmentLate = (dueDate) => {
+    return new Date() > new Date(dueDate);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   if (!user) {
@@ -254,10 +306,16 @@ const StudentDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">
-                  Available Courses
+                  Pending Assignments
                 </p>
                 <p className="text-3xl font-bold text-secondary-600 mt-2">
-                  {availableCourses.length}
+                  {
+                    assignments.filter(
+                      (a) =>
+                        a.status === "published" &&
+                        !isAssignmentSubmitted(a._id)
+                    ).length
+                  }
                 </p>
               </div>
               <div className="h-12 w-12 bg-secondary-100 rounded-lg flex items-center justify-center">
@@ -271,7 +329,7 @@ const StudentDashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
               </div>
@@ -283,9 +341,16 @@ const StudentDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">
-                  Average Grade
+                  Graded Submissions
                 </p>
-                <p className="text-3xl font-bold text-green-600 mt-2">-</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {
+                    mySubmissions.filter(
+                      (s) => s.grade !== null && s.grade !== undefined
+                    ).length
+                  }
+                  /{mySubmissions.length}
+                </p>
               </div>
               <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg
@@ -298,7 +363,7 @@ const StudentDashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
               </div>
@@ -384,7 +449,7 @@ const StudentDashboard = () => {
             </Link>
 
             <Link
-              to="/my-grades"
+              to="/grades"
               className="flex items-center p-4 border-2 border-green-500 rounded-lg hover:bg-green-50 transition duration-150"
             >
               <svg
@@ -406,6 +471,136 @@ const StudentDashboard = () => {
               </div>
             </Link>
           </div>
+        </div>
+
+        {/* Upcoming Assignments Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">
+              Upcoming Assignments
+            </h2>
+            <Link
+              to="/my-assignments"
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
+              View All →
+            </Link>
+          </div>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+            </div>
+          ) : assignments.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <svg
+                className="h-16 w-16 mx-auto text-gray-300 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p>No assignments available</p>
+              <p className="text-sm mt-2">
+                Assignments will appear here once your teachers create them
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {assignments
+                .filter((assignment) => assignment.status === "published")
+                .slice(0, 5)
+                .map((assignment) => {
+                  const submitted = isAssignmentSubmitted(assignment._id);
+                  const submission = getSubmissionForAssignment(assignment._id);
+                  const isLate = isAssignmentLate(assignment.dueDate);
+
+                  return (
+                    <div
+                      key={assignment._id}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {assignment.title}
+                          </h3>
+                          {submitted && (
+                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                              ✓ Submitted
+                            </span>
+                          )}
+                          {!submitted && isLate && (
+                            <span className="inline-block px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                              ⚠ Late
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {assignment.course?.title || "Course"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Due: {formatDate(assignment.dueDate)} •{" "}
+                          {assignment.totalPoints} points
+                        </p>
+                        {submitted && submission && (
+                          <div className="mt-2 text-sm">
+                            {submission.grade !== null &&
+                            submission.grade !== undefined ? (
+                              <span className="text-green-600 font-semibold">
+                                Grade: {submission.grade}/
+                                {assignment.totalPoints}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">
+                                Submitted on{" "}
+                                {formatDate(submission.submittedAt)} • Pending
+                                grading
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="ml-4">
+                        {submitted ? (
+                          <Link
+                            to={`/my-assignments`}
+                            className="inline-block px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+                          >
+                            View Submission
+                          </Link>
+                        ) : (
+                          <Link
+                            to={`/submit-assignment/${assignment._id}`}
+                            className="inline-block px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition shadow-sm"
+                          >
+                            Submit Now
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              {assignments.filter((a) => a.status === "published").length >
+                5 && (
+                <div className="text-center pt-2">
+                  <Link
+                    to="/my-assignments"
+                    className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    View all{" "}
+                    {assignments.filter((a) => a.status === "published").length}{" "}
+                    assignments →
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Recent Activity */}
