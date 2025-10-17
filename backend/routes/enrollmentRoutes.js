@@ -20,5 +20,11 @@ router.get(
   enrollmentController.getCourseEnrollments
 );
 router.delete("/:id", protect, enrollmentController.unenroll);
+router.delete(
+  "/remove/:enrollmentId",
+  protect,
+  authorize("Teacher"),
+  enrollmentController.removeStudentFromCourse
+);
 
 module.exports = router;

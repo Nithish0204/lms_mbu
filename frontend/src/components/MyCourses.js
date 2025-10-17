@@ -10,6 +10,11 @@ const MyCourses = () => {
   const [deleting, setDeleting] = useState({});
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [removingStudent, setRemovingStudent] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,6 +73,68 @@ const MyCourses = () => {
 
     setEnrollmentCounts(counts);
     console.log("✅ [MyCourses] Enrollment counts loaded:", counts);
+  };
+
+  const handleManageStudents = async (course) => {
+    console.log("🔍 [MyCourses] Managing students for course:", course.title);
+    setSelectedCourse(course);
+    setShowStudentsModal(true);
+    setLoadingStudents(true);
+
+    try {
+      const response = await enrollmentAPI.getCourseEnrollments(course._id);
+      console.log("✅ [MyCourses] Loaded enrolled students:", response.data);
+      setEnrolledStudents(response.data.enrollments || []);
+    } catch (error) {
+      console.error("❌ [MyCourses] Error loading students:", error);
+      setError("Failed to load enrolled students");
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  const handleRemoveStudent = async (enrollmentId, studentName) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to remove ${studentName} from this course?`
+      )
+    ) {
+      return;
+    }
+
+    console.log(
+      `🗑️ [MyCourses] Removing student enrollment ${enrollmentId}...`
+    );
+    setRemovingStudent({ ...removingStudent, [enrollmentId]: true });
+
+    try {
+      await enrollmentAPI.removeStudentFromCourse(enrollmentId);
+      console.log("✅ [MyCourses] Student removed successfully");
+
+      // Update local state
+      setEnrolledStudents(
+        enrolledStudents.filter((enrollment) => enrollment._id !== enrollmentId)
+      );
+
+      // Update enrollment count
+      if (selectedCourse) {
+        setEnrollmentCounts({
+          ...enrollmentCounts,
+          [selectedCourse._id]: (enrollmentCounts[selectedCourse._id] || 1) - 1,
+        });
+      }
+
+      setSuccessMessage(`${studentName} has been removed from the course`);
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error("❌ [MyCourses] Remove student error:", err);
+      const errorMsg = err.response?.data?.error || "Failed to remove student";
+      setError(errorMsg);
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setRemovingStudent({ ...removingStudent, [enrollmentId]: false });
+    }
   };
 
   const handleDeleteCourse = async (courseId, courseTitle) => {
@@ -341,7 +408,9 @@ const MyCourses = () => {
                             </svg>
                             <span>
                               {enrollmentCounts[course._id]} student
-                              {enrollmentCounts[course._id] !== 1 ? "s" : ""}{" "}
+                              {enrollmentCounts[course._id] !== 1
+                                ? "s"
+                                : ""}{" "}
                               enrolled
                             </span>
                           </div>
@@ -430,9 +499,22 @@ const MyCourses = () => {
                     {user.role === "Teacher" ? (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => navigate(`/teacher-dashboard`)}
-                          className="flex-1 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition duration-150"
+                          onClick={() => handleManageStudents(course)}
+                          className="flex-1 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition duration-150 flex items-center justify-center"
                         >
+                          <svg
+                            className="h-4 w-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                            />
+                          </svg>
                           Manage
                         </button>
                         <button
@@ -484,6 +566,188 @@ const MyCourses = () => {
           </div>
         )}
       </main>
+
+      {/* Students Management Modal */}
+      {showStudentsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-primary-500 to-secondary-500 px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">
+                Enrolled Students - {selectedCourse?.title}
+              </h2>
+              <button
+                onClick={() => setShowStudentsModal(false)}
+                className="text-white hover:text-gray-200 transition"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-8rem)]">
+              {loadingStudents ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+                  <p className="text-gray-500 mt-4">Loading students...</p>
+                </div>
+              ) : enrolledStudents.length === 0 ? (
+                <div className="text-center py-8">
+                  <svg
+                    className="h-16 w-16 mx-auto text-gray-300 mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                  <p className="text-gray-500 text-lg">
+                    No students enrolled yet
+                  </p>
+                  <p className="text-gray-400 text-sm mt-2">
+                    Students will appear here once they enroll in this course
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 mb-4">
+                    <p className="text-primary-800 font-medium">
+                      Total Enrolled: {enrolledStudents.length} student
+                      {enrolledStudents.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+
+                  {enrolledStudents.map((enrollment) => (
+                    <div
+                      key={enrollment._id}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition"
+                    >
+                      <div className="flex items-center space-x-4">
+                        {/* Student Avatar */}
+                        <div className="h-12 w-12 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">
+                            {enrollment.student?.name
+                              ?.charAt(0)
+                              .toUpperCase() || "S"}
+                          </span>
+                        </div>
+                        {/* Student Info */}
+                        <div>
+                          <h3 className="font-semibold text-gray-900">
+                            {enrollment.student?.name || "Unknown Student"}
+                          </h3>
+                          <p className="text-sm text-gray-600 flex items-center">
+                            <svg
+                              className="h-4 w-4 mr-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
+                            </svg>
+                            {enrollment.student?.email || "No email"}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Enrolled on{" "}
+                            {new Date(
+                              enrollment.enrolledAt
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      {/* Remove Button */}
+                      <button
+                        onClick={() =>
+                          handleRemoveStudent(
+                            enrollment._id,
+                            enrollment.student?.name || "this student"
+                          )
+                        }
+                        disabled={removingStudent[enrollment._id]}
+                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-150 flex items-center"
+                      >
+                        {removingStudent[enrollment._id] ? (
+                          <>
+                            <svg
+                              className="animate-spin h-4 w-4 mr-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                            Removing...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="h-4 w-4 mr-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            Remove
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <button
+                onClick={() => setShowStudentsModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition duration-150"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

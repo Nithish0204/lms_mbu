@@ -51,6 +51,8 @@ export const enrollmentAPI = {
   unenroll: (enrollmentId) => api.delete(`/enrollments/${enrollmentId}`),
   getCourseEnrollments: (courseId) =>
     api.get(`/enrollments/course/${courseId}`),
+  removeStudentFromCourse: (enrollmentId) =>
+    api.delete(`/enrollments/remove/${enrollmentId}`),
   getMyStudents: () => api.get("/enrollments/my-students"),
 };
 

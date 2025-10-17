@@ -147,3 +147,50 @@ exports.getCourseEnrollments = async (req, res) => {
   }
   console.log("=== END GET COURSE ENROLLMENTS REQUEST ===\n");
 };
+
+// Remove a student from a course (for teachers)
+exports.removeStudentFromCourse = async (req, res) => {
+  console.log("=== REMOVE STUDENT FROM COURSE REQUEST ===");
+  console.log("Enrollment ID:", req.params.enrollmentId);
+  console.log("Requesting user:", req.user._id);
+
+  try {
+    const enrollmentId = req.params.enrollmentId;
+
+    // Find the enrollment
+    const enrollment = await Enrollment.findById(enrollmentId).populate(
+      "course"
+    );
+    if (!enrollment) {
+      console.log("❌ Enrollment not found");
+      return res.status(404).json({
+        success: false,
+        error: "Enrollment not found",
+      });
+    }
+
+    // Check if user is the teacher of this course
+    if (enrollment.course.teacher.toString() !== req.user._id.toString()) {
+      console.log("❌ User not authorized to remove students");
+      return res.status(403).json({
+        success: false,
+        error: "Not authorized to remove students from this course",
+      });
+    }
+
+    console.log(
+      `🗑️ Removing student ${enrollment.student} from course ${enrollment.course._id}...`
+    );
+    await enrollment.deleteOne();
+
+    console.log("✅ Student removed successfully");
+    res.json({
+      success: true,
+      message: "Student removed from course successfully",
+    });
+  } catch (error) {
+    console.error("❌ REMOVE STUDENT FROM COURSE ERROR:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+  console.log("=== END REMOVE STUDENT FROM COURSE REQUEST ===\n");
+};
