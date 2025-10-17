@@ -1,5 +1,10 @@
 const Enrollment = require("../models/Enrollment");
 const Course = require("../models/Course");
+const User = require("../models/User");
+const {
+  sendEnrollmentNotificationToTeacher,
+  sendEnrollmentConfirmationToStudent,
+} = require("../utils/emailService");
 
 exports.createEnrollment = async (req, res) => {
   console.log("=== CREATE ENROLLMENT REQUEST ===");
@@ -24,6 +29,20 @@ exports.createEnrollment = async (req, res) => {
       });
     }
 
+    // Get course and teacher details
+    console.log("📚 Fetching course details...");
+    const course = await Course.findById(courseId).populate(
+      "teacher",
+      "name email"
+    );
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
     console.log("✅ Not enrolled yet, creating enrollment...");
     const enrollment = new Enrollment({
       student: req.user._id,
@@ -31,6 +50,22 @@ exports.createEnrollment = async (req, res) => {
     });
     await enrollment.save();
     console.log("✅ Enrollment created:", enrollment._id);
+
+    // Send notification to teacher (asynchronously)
+    console.log("📧 Sending enrollment notification to teacher...");
+    sendEnrollmentNotificationToTeacher(req.user, course, course.teacher).catch(
+      (error) => {
+        console.error("⚠️ Failed to send teacher notification:", error);
+      }
+    );
+
+    // Send confirmation to student (asynchronously)
+    console.log("📧 Sending enrollment confirmation to student...");
+    sendEnrollmentConfirmationToStudent(req.user, course, course.teacher).catch(
+      (error) => {
+        console.error("⚠️ Failed to send student confirmation:", error);
+      }
+    );
 
     res.status(201).json({ success: true, enrollment });
   } catch (error) {

@@ -1,6 +1,12 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const {
+  validateEmail,
+  deepValidateEmail,
+  sanitizeEmail,
+} = require("../utils/emailValidator");
+const { sendWelcomeEmail } = require("../utils/emailService");
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -16,14 +22,42 @@ exports.register = async (req, res, next) => {
   });
 
   try {
+    // Validate required fields
+    if (!name || !email || !password) {
+      console.log("❌ Missing required fields");
+      return res.status(400).json({
+        success: false,
+        msg: "Please provide name, email, and password",
+      });
+    }
+
+    // Sanitize email
+    const cleanEmail = sanitizeEmail(email);
+    console.log("📧 Email sanitized:", cleanEmail);
+
+    // Deep validate email (checks if email actually exists)
+    console.log("🔍 Deep validating email (this may take a few seconds)...");
+    const emailValidation = await deepValidateEmail(cleanEmail);
+
+    if (!emailValidation.valid) {
+      console.log("❌ Email validation failed:", emailValidation.message);
+      return res.status(400).json({
+        success: false,
+        msg: emailValidation.message,
+        reason: emailValidation.reason,
+      });
+    }
+
+    console.log("✅ Email validated successfully - email exists!");
+
     // Check if user already exists
     console.log("Checking if user already exists...");
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: cleanEmail });
     if (user) {
-      console.log("❌ User already exists with email:", email);
+      console.log("❌ User already exists with email:", cleanEmail);
       return res
         .status(400)
-        .json({ success: false, msg: "User already exists" });
+        .json({ success: false, msg: "User already exists with this email" });
     }
     console.log("✅ Email is available");
 
@@ -31,13 +65,19 @@ exports.register = async (req, res, next) => {
     console.log("Creating new user in database...");
     user = await User.create({
       name,
-      email,
+      email: cleanEmail,
       password,
       role,
     });
     console.log("✅ User created successfully!");
     console.log("New user ID:", user._id);
     console.log("User role:", user.role);
+
+    // Send welcome email (asynchronously - don't wait for it)
+    sendWelcomeEmail(user).catch((error) => {
+      console.error("⚠️ Failed to send welcome email:", error);
+      // Don't fail registration if email fails
+    });
 
     // Create token
     console.log("Generating JWT token...");

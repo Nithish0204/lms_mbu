@@ -1,11 +1,51 @@
 const Assignment = require("../models/Assignment");
+const Course = require("../models/Course");
+const Enrollment = require("../models/Enrollment");
+const {
+  sendAssignmentNotificationToStudents,
+} = require("../utils/emailService");
 
 exports.createAssignment = async (req, res) => {
+  console.log("\n=== CREATE ASSIGNMENT ===");
+  console.log("👤 Teacher:", req.user);
+  console.log("📝 Assignment data:", req.body);
+
   try {
     const assignment = new Assignment(req.body);
     await assignment.save();
+    console.log("✅ Assignment created:", assignment._id);
+
+    // Get course details with teacher info
+    const course = await Course.findById(assignment.course).populate(
+      "teacher",
+      "name email"
+    );
+
+    if (course) {
+      // Get all enrolled students
+      const enrollments = await Enrollment.find({
+        course: assignment.course,
+      }).populate("student", "name email");
+
+      const students = enrollments.map((e) => e.student);
+      console.log(`📧 Notifying ${students.length} enrolled students...`);
+
+      // Send notifications to all enrolled students (asynchronously)
+      if (students.length > 0) {
+        sendAssignmentNotificationToStudents(
+          students,
+          assignment,
+          course,
+          req.user
+        ).catch((error) => {
+          console.error("⚠️ Failed to send assignment notifications:", error);
+        });
+      }
+    }
+
     res.status(201).json({ success: true, assignment });
   } catch (error) {
+    console.error("❌ CREATE ASSIGNMENT ERROR:", error);
     res.status(400).json({ success: false, error: error.message });
   }
 };
