@@ -63,6 +63,15 @@ app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/live-classes", liveClassRoutes);
 app.use("/api/assessments", assessmentRoutes);
 
+// Health check endpoint for deployment diagnostics
+app.get("/api/health", (req, res) => {
+  res.json({
+    ok: true,
+    env: process.env.NODE_ENV || "development",
+    time: new Date().toISOString(),
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
 if (require.main === module) {

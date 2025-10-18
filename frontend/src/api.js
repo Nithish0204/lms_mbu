@@ -1,6 +1,12 @@
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5001/api";
+// Choose API base: in development (localhost) use local backend; in production use same-origin /api
+const isLocalhost =
+  typeof window !== "undefined" &&
+  /localhost|127\.0\.0\.1/.test(window.location.hostname);
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  (isLocalhost ? "http://localhost:5001/api" : "/api");
 
 // Create axios instance
 const api = axios.create({
