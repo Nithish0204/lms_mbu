@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { liveClassAPI, courseAPI } from "../api";
+import Modal from "./Modal";
 
 const LiveClasses = () => {
   const [user, setUser] = useState(null);
@@ -18,6 +19,13 @@ const LiveClasses = () => {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+    onConfirm: null,
+  });
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -85,14 +93,25 @@ const LiveClasses = () => {
   };
 
   const handleDelete = async (liveClassId) => {
-    if (window.confirm("Are you sure you want to delete this live class?")) {
-      try {
-        await liveClassAPI.deleteLiveClass(liveClassId);
-        fetchData(user.role);
-      } catch (err) {
-        alert("Failed to delete live class");
-      }
-    }
+    setModal({
+      isOpen: true,
+      title: "Delete live class?",
+      message: "Are you sure you want to delete this live class?",
+      type: "confirm",
+      onConfirm: async () => {
+        try {
+          await liveClassAPI.deleteLiveClass(liveClassId);
+          fetchData(user.role);
+        } catch (err) {
+          setModal({
+            isOpen: true,
+            title: "Error",
+            message: "Failed to delete live class",
+            type: "error",
+          });
+        }
+      },
+    });
   };
 
   const getStatusBadge = (status, scheduledAt) => {
@@ -145,6 +164,14 @@ const LiveClasses = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+      />
       {/* Header with Navigation */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

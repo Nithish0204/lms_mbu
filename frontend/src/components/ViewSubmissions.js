@@ -15,8 +15,11 @@ const ViewSubmissions = () => {
   const [grading, setGrading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    setUserRole(user?.role);
     fetchData();
   }, [assignmentId]);
 
@@ -150,14 +153,19 @@ const ViewSubmissions = () => {
 
   const stats = getSubmissionStats();
 
+  const handleBackClick = () => {
+    if (userRole === "Teacher") {
+      navigate("/teacher-dashboard");
+    } else {
+      navigate(`/course/${assignment.course}`);
+    }
+  };
+
   return (
     <div className="view-submissions-container">
       <div className="submissions-header">
-        <button
-          className="back-button"
-          onClick={() => navigate(`/course/${assignment.course}`)}
-        >
-          ← Back to Course
+        <button className="back-button" onClick={handleBackClick}>
+          ← Back to Dashboard
         </button>
         <h2>{assignment.title} - Submissions</h2>
         <div className="assignment-meta">

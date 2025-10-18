@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { courseAPI, assignmentAPI, enrollmentAPI } from "../api";
+import { courseAPI, assignmentAPI, enrollmentAPI, submissionAPI } from "../api";
+import Modal from "./Modal";
 import "./CourseDetail.css";
 
 const CourseDetail = () => {
@@ -12,6 +13,13 @@ const CourseDetail = () => {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [submittedAssignments, setSubmittedAssignments] = useState([]);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -44,6 +52,13 @@ const CourseDetail = () => {
         try {
           const enrollmentRes = await enrollmentAPI.checkEnrollment(id);
           setIsEnrolled(enrollmentRes.data.enrolled);
+
+          // Fetch student's submissions to check which assignments are already submitted
+          const submissionsRes = await submissionAPI.getMySubmissions();
+          const submittedIds = submissionsRes.data.submissions.map(
+            (sub) => sub.assignment._id
+          );
+          setSubmittedAssignments(submittedIds);
         } catch (err) {
           setIsEnrolled(false);
         }
@@ -60,9 +75,19 @@ const CourseDetail = () => {
     try {
       await enrollmentAPI.enroll(id);
       setIsEnrolled(true);
-      alert("Successfully enrolled in the course!");
+      setModal({
+        isOpen: true,
+        title: "Success",
+        message: "Successfully enrolled in the course!",
+        type: "success",
+      });
     } catch (error) {
-      alert(error.response?.data?.error || "Failed to enroll");
+      setModal({
+        isOpen: true,
+        title: "Error",
+        message: error.response?.data?.error || "Failed to enroll",
+        type: "error",
+      });
     }
   };
 
@@ -125,12 +150,6 @@ const CourseDetail = () => {
           </div>
         )}
 
-        {!isTeacher && isEnrolled && (
-          <div className="enrollment-success">
-            ✅ You are enrolled in this course
-          </div>
-        )}
-
         {/* Assignments Section */}
         <div className="assignments-section">
           <div className="section-header">
@@ -180,14 +199,17 @@ const CourseDetail = () => {
                           View Submissions
                         </Link>
                       ) : (
-                        isEnrolled && (
+                        isEnrolled &&
+                        (submittedAssignments.includes(assignment._id) ? (
+                          <span className="submitted-badge">✓ Submitted</span>
+                        ) : (
                           <Link
                             to={`/submit-assignment/${assignment._id}`}
                             className="btn-primary btn-sm"
                           >
                             Submit
                           </Link>
-                        )
+                        ))
                       )}
                     </div>
                   </div>
@@ -209,6 +231,13 @@ const CourseDetail = () => {
           </div>
         )}
       </div>
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+      />
     </div>
   );
 };

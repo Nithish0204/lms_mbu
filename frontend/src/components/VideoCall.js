@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AgoraRTC from "agora-rtc-sdk-ng";
 import { liveClassAPI } from "../api";
+import Modal from "./Modal";
 
 const VideoCall = () => {
   const { id } = useParams();
@@ -23,6 +24,13 @@ const VideoCall = () => {
   const [localUid, setLocalUid] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const hasJoined = useRef(false);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+    onConfirm: null,
+  });
 
   useEffect(() => {
     // Get current user info
@@ -211,7 +219,13 @@ const VideoCall = () => {
       }
     } catch (err) {
       console.error("❌ Error enabling local media:", err);
-      alert("Failed to enable camera/microphone. Please check permissions.");
+      setModal({
+        isOpen: true,
+        title: "Permission error",
+        message:
+          "Failed to enable camera/microphone. Please check permissions and try again.",
+        type: "error",
+      });
     }
   };
 
@@ -236,21 +250,33 @@ const VideoCall = () => {
   };
 
   const endClass = async () => {
-    if (window.confirm("Are you sure you want to end this live class?")) {
-      try {
-        console.log("🛑 Ending live class:", id);
-        const response = await liveClassAPI.endLiveClass(id);
-        console.log("✅ End class response:", response.data);
-        alert("Live class ended successfully");
-        await leaveClass();
-      } catch (err) {
-        console.error("❌ Error ending class:", err);
-        console.error("❌ Error response:", err.response?.data);
-        const errorMsg =
-          err.response?.data?.error || "Failed to end class. Please try again.";
-        alert(errorMsg);
-      }
-    }
+    setModal({
+      isOpen: true,
+      title: "End live class?",
+      message: "Are you sure you want to end this live class for everyone?",
+      type: "confirm",
+      onConfirm: async () => {
+        try {
+          console.log("🛑 Ending live class:", id);
+          const response = await liveClassAPI.endLiveClass(id);
+          console.log("✅ End class response:", response.data);
+          // Navigate back after ending without using alerts
+          await leaveClass();
+        } catch (err) {
+          console.error("❌ Error ending class:", err);
+          console.error("❌ Error response:", err.response?.data);
+          const errorMsg =
+            err.response?.data?.error ||
+            "Failed to end class. Please try again.";
+          setModal({
+            isOpen: true,
+            title: "Failed to end class",
+            message: errorMsg,
+            type: "error",
+          });
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -283,6 +309,14 @@ const VideoCall = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+      />
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700 px-6 py-4">
         <div className="flex justify-between items-center">

@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assignmentAPI, submissionAPI } from "../api";
+import Modal from "./Modal";
 
 const Assignments = () => {
   const [user, setUser] = useState(null);
   const [assignments, setAssignments] = useState([]);
   const [mySubmissions, setMySubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+    onConfirm: null,
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -105,6 +113,14 @@ const Assignments = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+      />
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">
@@ -271,9 +287,13 @@ const Assignments = () => {
                                     !assignment.allowLateSubmission
                                   ) {
                                     e.preventDefault();
-                                    alert(
-                                      "This assignment is past due and late submissions are not allowed."
-                                    );
+                                    setModal({
+                                      isOpen: true,
+                                      title: "Late submission blocked",
+                                      message:
+                                        "This assignment is past due and late submissions are not allowed.",
+                                      type: "warning",
+                                    });
                                   }
                                 }}
                               >

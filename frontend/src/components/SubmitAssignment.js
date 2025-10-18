@@ -13,10 +13,33 @@ const SubmitAssignment = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     fetchAssignment();
+    checkUserRole();
+    checkExistingSubmission();
   }, [assignmentId]);
+
+  const checkUserRole = () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    setUserRole(user?.role);
+  };
+
+  const checkExistingSubmission = async () => {
+    try {
+      const response = await submissionAPI.getMySubmissions();
+      const existingSubmission = response.data.submissions.find(
+        (sub) => sub.assignment._id === assignmentId
+      );
+      if (existingSubmission) {
+        setAlreadySubmitted(true);
+      }
+    } catch (error) {
+      console.error("Error checking submission:", error);
+    }
+  };
 
   const fetchAssignment = async () => {
     try {
@@ -144,11 +167,19 @@ const SubmitAssignment = () => {
   };
 
   const handleBackClick = () => {
-    const courseId = getCourseId();
-    if (courseId) {
-      navigate(`/course/${courseId}`);
-    } else {
+    // Navigate based on user role
+    if (userRole === "Student") {
       navigate("/student-dashboard");
+    } else if (userRole === "Teacher") {
+      navigate("/teacher-dashboard");
+    } else {
+      // Fallback to course page
+      const courseId = getCourseId();
+      if (courseId) {
+        navigate(`/course/${courseId}`);
+      } else {
+        navigate(-1);
+      }
     }
   };
 
@@ -242,7 +273,16 @@ const SubmitAssignment = () => {
         {error && <div className="alert alert-danger">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}
 
-        {(!isLate() || assignment.allowLateSubmission) && (
+        {alreadySubmitted ? (
+          <div className="already-submitted">
+            <div className="alert alert-info">
+              ✓ You have already submitted this assignment.
+            </div>
+            <button className="btn-primary" onClick={handleBackClick}>
+              Back to Dashboard
+            </button>
+          </div>
+        ) : !isLate() || assignment.allowLateSubmission ? (
           <form onSubmit={handleSubmit} className="submission-form">
             {(assignment.submissionType === "text" ||
               assignment.submissionType === "both") && (
@@ -312,7 +352,7 @@ const SubmitAssignment = () => {
               </button>
             </div>
           </form>
-        )}
+        ) : null}
       </div>
     </div>
   );

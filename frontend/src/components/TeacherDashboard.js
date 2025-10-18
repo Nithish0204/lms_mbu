@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { courseAPI, enrollmentAPI, assignmentAPI, submissionAPI } from "../api";
+import Modal from "./Modal";
 
 // Assignment Card Component
 const AssignmentCard = ({
@@ -197,6 +198,13 @@ const TeacherDashboard = () => {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [removingStudent, setRemovingStudent] = useState({});
   const navigate = useNavigate();
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info",
+    onConfirm: null,
+  });
 
   useEffect(() => {
     console.log("=== [TeacherDashboard] Component mounted ===");
@@ -444,21 +452,28 @@ const TeacherDashboard = () => {
       setEnrolledStudents(response.data.enrollments || []);
     } catch (error) {
       console.error("❌ [TeacherDashboard] Error loading students:", error);
-      alert("Failed to load enrolled students");
+      setModal({
+        isOpen: true,
+        title: "Error",
+        message: "Failed to load enrolled students",
+        type: "error",
+      });
     } finally {
       setLoadingStudents(false);
     }
   };
 
   const handleRemoveStudent = async (enrollmentId, studentName) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to remove ${studentName} from this course?`
-      )
-    ) {
-      return;
-    }
+    setModal({
+      isOpen: true,
+      title: "Confirm Removal",
+      message: `Are you sure you want to remove ${studentName} from this course?`,
+      type: "confirm",
+      onConfirm: () => confirmRemoveStudent(enrollmentId, studentName),
+    });
+  };
 
+  const confirmRemoveStudent = async (enrollmentId, studentName) => {
     console.log(
       `🗑️ [TeacherDashboard] Removing student enrollment ${enrollmentId}...`
     );
@@ -468,12 +483,10 @@ const TeacherDashboard = () => {
       await enrollmentAPI.removeStudentFromCourse(enrollmentId);
       console.log("✅ [TeacherDashboard] Student removed successfully");
 
-      // Update local state
       setEnrolledStudents(
         enrolledStudents.filter((enrollment) => enrollment._id !== enrollmentId)
       );
 
-      // Update enrollment count
       if (selectedCourse) {
         setEnrollmentCounts({
           ...enrollmentCounts,
@@ -481,27 +494,38 @@ const TeacherDashboard = () => {
         });
       }
 
-      // Refresh assignment/submission stats since enrollment affects pending counts
       fetchAssignmentsAndSubmissions();
 
-      alert(`${studentName} has been removed from the course`);
+      setModal({
+        isOpen: true,
+        title: "Success",
+        message: `${studentName} has been removed from the course`,
+        type: "success",
+      });
     } catch (err) {
       console.error("❌ [TeacherDashboard] Remove student error:", err);
-      alert(err.response?.data?.error || "Failed to remove student");
+      setModal({
+        isOpen: true,
+        title: "Error",
+        message: err.response?.data?.error || "Failed to remove student",
+        type: "error",
+      });
     } finally {
       setRemovingStudent({ ...removingStudent, [enrollmentId]: false });
     }
   };
 
   const handleDeleteCourse = async (courseId, courseTitle) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete "${courseTitle}"? This will also remove all student enrollments.`
-      )
-    ) {
-      return;
-    }
+    setModal({
+      isOpen: true,
+      title: "Confirm Delete",
+      message: `Are you sure you want to delete "${courseTitle}"? This will also remove all student enrollments.`,
+      type: "confirm",
+      onConfirm: () => confirmDeleteCourse(courseId, courseTitle),
+    });
+  };
 
+  const confirmDeleteCourse = async (courseId, courseTitle) => {
     console.log(`🗑️ [TeacherDashboard] Deleting course ${courseId}...`);
     setDeleting({ ...deleting, [courseId]: true });
 
@@ -513,21 +537,28 @@ const TeacherDashboard = () => {
       setCourses(courses.filter((course) => course._id !== courseId));
     } catch (err) {
       console.error("❌ [TeacherDashboard] Delete error:", err);
-      alert(err.response?.data?.error || "Failed to delete course");
+      setModal({
+        isOpen: true,
+        title: "Error",
+        message: err.response?.data?.error || "Failed to delete course",
+        type: "error",
+      });
     } finally {
       setDeleting({ ...deleting, [courseId]: false });
     }
   };
 
   const handleDeleteAssignment = async (assignmentId, assignmentTitle) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete "${assignmentTitle}"? This will also remove all student submissions.`
-      )
-    ) {
-      return;
-    }
+    setModal({
+      isOpen: true,
+      title: "Confirm Delete",
+      message: `Are you sure you want to delete "${assignmentTitle}"? This will also remove all student submissions.`,
+      type: "confirm",
+      onConfirm: () => confirmDeleteAssignment(assignmentId, assignmentTitle),
+    });
+  };
 
+  const confirmDeleteAssignment = async (assignmentId, assignmentTitle) => {
     console.log(`🗑️ [TeacherDashboard] Deleting assignment ${assignmentId}...`);
     setDeletingAssignment({ ...deletingAssignment, [assignmentId]: true });
 
@@ -546,10 +577,20 @@ const TeacherDashboard = () => {
       // Refresh all stats to ensure accuracy
       fetchAssignmentsAndSubmissions();
 
-      alert("Assignment deleted successfully");
+      setModal({
+        isOpen: true,
+        title: "Success",
+        message: "Assignment deleted successfully",
+        type: "success",
+      });
     } catch (err) {
       console.error("❌ [TeacherDashboard] Delete assignment error:", err);
-      alert(err.response?.data?.error || "Failed to delete assignment");
+      setModal({
+        isOpen: true,
+        title: "Error",
+        message: err.response?.data?.error || "Failed to delete assignment",
+        type: "error",
+      });
     } finally {
       setDeletingAssignment({ ...deletingAssignment, [assignmentId]: false });
     }
@@ -2075,6 +2116,14 @@ const TeacherDashboard = () => {
           </div>
         </div>
       )}
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ ...modal, isOpen: false })}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+      />
     </div>
   );
 };
