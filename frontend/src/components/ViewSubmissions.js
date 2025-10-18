@@ -74,6 +74,16 @@ const ViewSubmissions = () => {
   };
 
   const handleDownloadFile = async (submissionId, fileIndex, fileName) => {
+    // Find the file object
+    const submission =
+      submissions.find((s) => s._id === submissionId) || selectedSubmission;
+    const file = submission?.files?.[fileIndex];
+    if (file && file.url && /^https?:\/\//.test(file.url)) {
+      // Cloud file: direct download
+      window.open(file.url, "_blank");
+      return;
+    }
+    // Local file: use backend endpoint
     try {
       const response = await submissionAPI.downloadFile(
         submissionId,

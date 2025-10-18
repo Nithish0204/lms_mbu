@@ -38,7 +38,7 @@ if (hasCloudinaryConfig) {
     cloudinary,
     params: async (req, file) => ({
       folder: "lms/assignments",
-      resource_type: "auto",
+      resource_type: "raw",
       public_id: `assign-${Date.now()}`,
     }),
   });
@@ -111,24 +111,29 @@ exports.createAssignment = async (req, res) => {
 
     try {
       // Prepare file data
-      const usingCloud = !!(
-        hasCloudinaryConfig &&
-        req.files &&
-        req.files.length &&
-        req.files[0].path &&
-        req.files[0].path.startsWith("http")
-      );
       const attachments = req.files
-        ? req.files.map((file) => ({
-            filename: file.filename || file.public_id,
-            originalName: file.originalname || file.original_filename,
-            path: file.path || file.secure_url, // keep 'path' for backwards compatibility
-            url: file.secure_url || file.path, // prefer direct URL if available
-            mimetype: file.mimetype,
-            size: file.size,
-            provider: usingCloud ? "cloudinary" : "local",
-            publicId: file.public_id || undefined,
-          }))
+        ? req.files.map((file) => {
+            const isCloud =
+              hasCloudinaryConfig &&
+              ((file.secure_url && file.secure_url.startsWith("http")) ||
+                (file.path && file.path.startsWith("http")));
+            const provider = isCloud ? "cloudinary" : "local";
+            log.info("assignment:file:stored", {
+              filename: file.filename || file.public_id,
+              provider,
+              url: file.secure_url || file.path,
+            });
+            return {
+              filename: file.filename || file.public_id,
+              originalName: file.originalname || file.original_filename,
+              path: file.path || file.secure_url,
+              url: file.secure_url || file.path,
+              mimetype: file.mimetype,
+              size: file.size,
+              provider,
+              publicId: file.public_id || undefined,
+            };
+          })
         : [];
 
       const assignmentData = {

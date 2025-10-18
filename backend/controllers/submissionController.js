@@ -34,7 +34,7 @@ if (hasCloudinaryConfig) {
     cloudinary,
     params: async () => ({
       folder: "lms/submissions",
-      resource_type: "auto",
+      resource_type: "raw",
       public_id: `sub-${Date.now()}`,
     }),
   });
