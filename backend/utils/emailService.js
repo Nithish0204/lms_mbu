@@ -45,7 +45,7 @@ const createTransporter = () => {
     return null;
   }
 
-  return nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || "smtp.gmail.com",
     port: parseInt(process.env.SMTP_PORT) || 587,
     secure: false, // true for 465, false for other ports
@@ -54,6 +54,17 @@ const createTransporter = () => {
       pass: process.env.SMTP_PASS,
     },
   });
+
+  // Debug connection
+  transporter.verify(function (error, success) {
+    if (error) {
+      console.error("❌ SMTP connection failed:", error);
+    } else {
+      console.log("✅ SMTP server is ready to take our messages");
+    }
+  });
+
+  return transporter;
 };
 
 /**
@@ -74,11 +85,8 @@ const sendEmail = async (mailOptions) => {
     console.log(`✅ Email sent to ${mailOptions.to}: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error(
-      `❌ Error sending email to ${mailOptions.to}:`,
-      error.message
-    );
-    return { success: false, error: error.message };
+    console.error(`❌ Error sending email to ${mailOptions.to}:`, error);
+    return { success: false, error: error.message, fullError: error };
   }
 };
 

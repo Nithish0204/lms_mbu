@@ -134,6 +134,7 @@ exports.deepValidateEmail = async (email) => {
   console.log(`\n🔬 Deep validating email: ${email}`);
 
   try {
+    const smtpTimeout = parseInt(process.env.EMAIL_SMTP_TIMEOUT || "10000", 10);
     const result = await validate({
       email: email,
       sender: process.env.SMTP_USER || "noreply@lmsplatform.com",
@@ -142,12 +143,13 @@ exports.deepValidateEmail = async (email) => {
       validateTypo: true,
       validateDisposable: true,
       validateSMTP: true, // ✅ ENABLED - Checks if email actually exists on server
+      timeout: Number.isFinite(smtpTimeout) ? smtpTimeout : 10000, // Configurable timeout
     });
 
     console.log("Deep validation result:", result);
 
     if (result.valid) {
-      console.log("✅ Deep email validation passed");
+      console.log("✅ Deep email validation passed - email exists!");
       return {
         valid: true,
         message: "Email is valid and exists",
@@ -158,15 +160,67 @@ exports.deepValidateEmail = async (email) => {
 
       // Provide user-friendly error messages
       let message = "Email validation failed";
+      let allowRegistration = false;
 
       if (result.reason === "regex") {
-        message = "Invalid email format";
+        message = "Invalid email format. Please check your email address.";
       } else if (result.reason === "mx") {
-        message = "Email domain does not exist or cannot receive emails";
+        message =
+          "Email domain does not exist or cannot receive emails. Please check the domain.";
       } else if (result.reason === "disposable") {
-        message = "Disposable/temporary email addresses are not allowed";
+        message =
+          "Disposable/temporary email addresses are not allowed. Please use a permanent email.";
       } else if (result.reason === "smtp") {
-        message = "Email address does not exist on the server";
+        // SMTP validation failed. Distinguish between hard failures vs. inconclusive (timeouts/blocked).
+        const smtpDetails = result.validators?.smtp || {};
+        const smtpReasonRaw = smtpDetails.reason ?? result.reason;
+        const smtpReason = String(smtpReasonRaw).toLowerCase();
+
+        const isTimeoutOrBlocked =
+          smtpReason.includes("timeout") ||
+          smtpReason.includes("timed out") ||
+          smtpReason.includes("connection") ||
+          smtpReason.includes("refused") ||
+          smtpReason.includes("block") ||
+          smtpReason.includes("grey") ||
+          smtpReason.includes("anti") ||
+          smtpReason.includes("starttls") ||
+          smtpReason.includes("tls");
+
+        const strictMode =
+          String(process.env.EMAIL_SMTP_STRICT || "false").toLowerCase() ===
+          "true";
+
+        if (isTimeoutOrBlocked && !strictMode) {
+          // Treat as inconclusive: allow registration but require OTP to verify real ownership
+          const hasValidFormat = result.validators?.regex?.valid !== false;
+          const hasValidMx = result.validators?.mx?.valid !== false;
+          const notDisposable = result.validators?.disposable?.valid !== false;
+
+          if (hasValidFormat && hasValidMx && notDisposable) {
+            console.log(
+              "⚠️ SMTP check inconclusive (",
+              smtpReasonRaw,
+              ") - allowing registration with OTP verification"
+            );
+            return {
+              valid: true,
+              message: "Email validation passed (SMTP check inconclusive)",
+              warning:
+                "SMTP verification timed out or was blocked. We'll verify ownership via OTP.",
+              details: result,
+            };
+          }
+          // Otherwise, fall through to a generic failure message below
+        }
+
+        // Hard SMTP failure (e.g., mailbox does not exist) or strict mode enabled
+        console.log(
+          "❌ SMTP verification hard failure",
+          smtpReasonRaw ? `- reason: ${smtpReasonRaw}` : ""
+        );
+        message =
+          "This email address could not be verified by the mail server. Please use a valid email address that you can access.";
       } else if (result.reason === "typo") {
         message = `Did you mean ${result.validators.typo.suggestion}?`;
       }

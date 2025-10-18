@@ -1,6 +1,3 @@
-// @desc    Verify OTP for email verification
-// @route   POST /api/auth/verify-otp
-// @access  Public
 exports.verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
   if (!email || !otp) {
@@ -100,7 +97,18 @@ exports.register = async (req, res, next) => {
     const cleanEmail = sanitizeEmail(email);
     console.log("📧 Email sanitized:", cleanEmail);
 
-    // Deep validate email (checks if email actually exists)
+    // STEP 1: Check if user already exists (fast check first)
+    console.log("Checking if user already exists...");
+    let user = await User.findOne({ email: cleanEmail });
+    if (user) {
+      console.log("❌ User already exists with email:", cleanEmail);
+      return res
+        .status(400)
+        .json({ success: false, msg: "User already exists with this email" });
+    }
+    console.log("✅ Email is available in database");
+
+    // STEP 2: Deep validate email (checks if email actually exists in real world)
     console.log("🔍 Deep validating email (this may take a few seconds)...");
     const emailValidation = await deepValidateEmail(cleanEmail);
 
@@ -113,18 +121,13 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    console.log("✅ Email validated successfully - email exists!");
-
-    // Check if user already exists
-    console.log("Checking if user already exists...");
-    let user = await User.findOne({ email: cleanEmail });
-    if (user) {
-      console.log("❌ User already exists with email:", cleanEmail);
-      return res
-        .status(400)
-        .json({ success: false, msg: "User already exists with this email" });
+    if (emailValidation.warning) {
+      console.log("⚠️ Email validation warning:", emailValidation.warning);
     }
-    console.log("✅ Email is available");
+
+    console.log(
+      "✅ Email validated successfully - email exists in real world!"
+    );
 
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();

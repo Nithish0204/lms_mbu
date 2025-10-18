@@ -26,10 +26,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 function Navbar() {
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-white shadow-lg w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
+        <div className="flex flex-col md:flex-row justify-between h-auto md:h-16 items-center md:items-stretch">
+          <div className="flex items-center py-2 md:py-0 w-full md:w-auto justify-center md:justify-start">
             <Link to="/" className="flex items-center space-x-2">
               <div className="h-10 w-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">H</span>
@@ -39,22 +39,22 @@ function Navbar() {
               </span>
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto justify-center md:justify-end py-2 md:py-0">
             <Link
               to="/"
-              className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150"
+              className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full md:w-auto text-center"
             >
               Home
             </Link>
             <Link
               to="/login"
-              className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150"
+              className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full md:w-auto text-center"
             >
               Login
             </Link>
             <Link
               to="/register"
-              className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-150 shadow-sm"
+              className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-150 shadow-sm w-full md:w-auto text-center"
             >
               Get Started
             </Link>
@@ -67,30 +67,30 @@ function Navbar() {
 
 function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
       {/* Hero Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 w-full">
         <div className="text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 break-words">
             Welcome to{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600">
               Hubexus LMS
             </span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Transform your learning experience with our comprehensive Learning
             Management System. Connect, learn, and grow together.
           </p>
-          <div className="flex justify-center space-x-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link
               to="/register"
-              className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-lg text-lg font-semibold transition duration-150 shadow-lg hover:shadow-xl"
+              className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-lg text-lg font-semibold transition duration-150 shadow-lg hover:shadow-xl w-full sm:w-auto text-center"
             >
               Start Learning
             </Link>
             <Link
               to="/login"
-              className="bg-white hover:bg-gray-50 text-primary-600 border-2 border-primary-500 px-8 py-3 rounded-lg text-lg font-semibold transition duration-150 shadow-lg hover:shadow-xl"
+              className="bg-white hover:bg-gray-50 text-primary-600 border-2 border-primary-500 px-8 py-3 rounded-lg text-lg font-semibold transition duration-150 shadow-lg hover:shadow-xl w-full sm:w-auto text-center"
             >
               Sign In
             </Link>
@@ -98,10 +98,10 @@ function HomePage() {
         </div>
 
         {/* Features Grid */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {/* Feature 1 */}
-          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition duration-300">
-            <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition duration-300 flex flex-col h-full">
+            <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
               <svg
                 className="h-6 w-6 text-primary-600"
                 fill="none"
@@ -116,18 +116,18 @@ function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
               Course Management
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-center">
               Create, manage, and access courses with ease. Teachers can publish
               content, and students can enroll seamlessly.
             </p>
           </div>
 
           {/* Feature 2 */}
-          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition duration-300">
-            <div className="h-12 w-12 bg-secondary-100 rounded-lg flex items-center justify-center mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition duration-300 flex flex-col h-full">
+            <div className="h-12 w-12 bg-secondary-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
               <svg
                 className="h-6 w-6 text-secondary-600"
                 fill="none"
@@ -142,18 +142,18 @@ function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
               Assignment Tracking
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-center">
               Submit assignments, track deadlines, and receive feedback all in
               one place for better learning outcomes.
             </p>
           </div>
 
           {/* Feature 3 */}
-          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition duration-300">
-            <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition duration-300 flex flex-col h-full">
+            <div className="h-12 w-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
               <svg
                 className="h-6 w-6 text-indigo-600"
                 fill="none"
@@ -168,10 +168,10 @@ function HomePage() {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
               Grade Analytics
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-center">
               Monitor your progress with detailed grade analytics and
               performance insights to stay on track.
             </p>
@@ -179,22 +179,22 @@ function HomePage() {
         </div>
 
         {/* Stats Section */}
-        <div className="mt-20 bg-white rounded-2xl shadow-xl p-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div className="mt-12 bg-white rounded-2xl shadow-xl p-8 sm:p-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-primary-600 mb-2">
+              <div className="text-3xl sm:text-4xl font-bold text-primary-600 mb-2">
                 500+
               </div>
               <div className="text-gray-600">Active Students</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-secondary-600 mb-2">
+              <div className="text-3xl sm:text-4xl font-bold text-secondary-600 mb-2">
                 50+
               </div>
               <div className="text-gray-600">Expert Teachers</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-indigo-600 mb-2">
+              <div className="text-3xl sm:text-4xl font-bold text-indigo-600 mb-2">
                 100+
               </div>
               <div className="text-gray-600">Courses Available</div>
@@ -204,7 +204,7 @@ function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 mt-20">
+      <footer className="bg-gray-900 text-white py-8 mt-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-gray-400">
             © 2025 Hubexus LMS. Built for 24-Hour Hackathon. All rights

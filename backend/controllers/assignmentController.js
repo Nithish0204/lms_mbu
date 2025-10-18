@@ -5,21 +5,18 @@ const Submission = require("../models/Submission");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-// Optional Cloudinary storage (used if CLOUDINARY_* env vars are set)
+
 let CloudinaryStorage, cloudinary;
 try {
   ({ CloudinaryStorage } = require("multer-storage-cloudinary"));
   ({ v2: cloudinary } = require("cloudinary"));
-} catch (e) {
-  // Dependencies may not be installed; fallback to local storage
-}
+} catch (e) {}
 const {
   sendAssignmentNotificationToStudents,
 } = require("../utils/emailService");
 const { createLogger } = require("../utils/logger");
 const log = createLogger("assignmentController");
 
-// Configure multer for file uploads (cloud if configured, else local disk)
 let storage;
 const hasCloudinaryConfig =
   process.env.CLOUDINARY_CLOUD_NAME &&
@@ -241,9 +238,44 @@ exports.getAssignment = async (req, res) => {
 };
 
 exports.getMyAssignments = async (req, res) => {
+  const Enrollment = require("../models/Enrollment");
+
   try {
-    // Get assignments for courses the user is enrolled in or teaching
-    const assignments = await Assignment.find().populate("course");
+    let assignments;
+
+    if (req.user.role === "Teacher") {
+      // For teachers, return all assignments they created
+      assignments = await Assignment.find({ teacher: req.user._id }).populate(
+        "course"
+      );
+      log.info("assignments:my:teacher", {
+        requestId: req.id,
+        teacherId: req.user._id,
+        count: assignments.length,
+      });
+    } else if (req.user.role === "Student") {
+      // For students, only return assignments from courses they're enrolled in
+      const enrollments = await Enrollment.find({
+        student: req.user._id,
+      }).select("course");
+
+      const enrolledCourseIds = enrollments.map((e) => e.course);
+
+      assignments = await Assignment.find({
+        course: { $in: enrolledCourseIds },
+        status: "published", // Only show published assignments to students
+      }).populate("course");
+
+      log.info("assignments:my:student", {
+        requestId: req.id,
+        studentId: req.user._id,
+        enrolledCourses: enrolledCourseIds.length,
+        assignments: assignments.length,
+      });
+    } else {
+      assignments = [];
+    }
+
     res.json({ success: true, assignments });
   } catch (error) {
     log.error("assignments:my:error", {

@@ -9,6 +9,7 @@ import {
 } from "../api";
 
 const StudentDashboard = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [availableCourses, setAvailableCourses] = useState([]);
@@ -142,21 +143,21 @@ const StudentDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full md:w-auto">
               {/* User Avatar */}
-              <div className="h-14 w-14 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
+              <div className="h-14 w-14 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mb-2 sm:mb-0">
                 <span className="text-white font-bold text-xl">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
               {/* User Info */}
-              <div>
+              <div className="text-center sm:text-left">
                 <h1 className="text-2xl font-bold text-gray-900">
                   {user.name}
                 </h1>
-                <div className="flex items-center space-x-3 text-sm text-gray-600">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-sm text-gray-600 mt-1">
                   <span className="flex items-center">
                     <svg
                       className="h-4 w-4 mr-1"
@@ -193,22 +194,47 @@ const StudentDashboard = () => {
               </div>
             </div>
             {/* Right side - Navigation & Logout */}
-            <div className="flex items-center space-x-4">
+            <div className="md:hidden w-full flex justify-end mb-2">
+              <button
+                className="p-2 rounded-lg border border-gray-300 focus:outline-none"
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-label="Toggle menu"
+              >
+                <svg
+                  className="h-6 w-6 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              className={`flex flex-wrap gap-2 sm:gap-4 items-center justify-center sm:justify-end w-full md:w-auto mt-4 md:mt-0 ${
+                menuOpen ? "" : "hidden md:flex"
+              }`}
+            >
               <Link
                 to="/student-dashboard"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150"
+                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full sm:w-auto text-center"
               >
                 Dashboard
               </Link>
               <Link
                 to="/my-courses"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150"
+                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full sm:w-auto text-center"
               >
                 My Courses
               </Link>
               <Link
                 to="/live-classes"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center"
+                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center w-full sm:w-auto text-center"
               >
                 <svg
                   className="h-5 w-5 mr-1"
@@ -227,7 +253,7 @@ const StudentDashboard = () => {
               </Link>
               <Link
                 to="/profile"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center"
+                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center w-full sm:w-auto text-center"
               >
                 <svg
                   className="h-5 w-5 mr-1"
@@ -246,7 +272,7 @@ const StudentDashboard = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-150 flex items-center"
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-150 flex items-center w-full sm:w-auto text-center"
               >
                 <svg
                   className="h-5 w-5 mr-1"
