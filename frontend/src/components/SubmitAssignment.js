@@ -216,17 +216,25 @@ const SubmitAssignment = () => {
           <div className="assignment-attachments">
             <h3>Attachments</h3>
             <ul>
-              {assignment.attachments.map((attachment, index) => (
-                <li key={index}>
-                  <a
-                    href={`http://localhost:5001/${attachment.path}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    📎 {attachment.filename}
-                  </a>
-                </li>
-              ))}
+              {assignment.attachments.map((attachment, index) => {
+                const href = attachment.url
+                  ? attachment.url
+                  : attachment.path && /^https?:\/\//.test(attachment.path)
+                  ? attachment.path
+                  : attachment.path
+                  ? `http://localhost:5001/${attachment.path}`
+                  : "#";
+                return (
+                  <li key={index}>
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      📎{" "}
+                      {attachment.filename ||
+                        attachment.originalName ||
+                        `Attachment ${index + 1}`}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

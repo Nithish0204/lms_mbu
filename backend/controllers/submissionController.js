@@ -5,25 +5,59 @@ const User = require("../models/User");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+// Optional Cloudinary storage
+let CloudinaryStorage, cloudinary;
+try {
+  ({ CloudinaryStorage } = require("multer-storage-cloudinary"));
+  ({ v2: cloudinary } = require("cloudinary"));
+} catch (_) {}
 const { sendGradeNotificationEmail } = require("../utils/emailService");
+const { createLogger } = require("../utils/logger");
+const log = createLogger("submissionController");
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = "uploads/submissions";
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
-    );
-  },
-});
+// Configure multer for file uploads (cloud if configured, else local disk)
+let storage;
+const hasCloudinaryConfig =
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET &&
+  CloudinaryStorage &&
+  cloudinary;
+
+if (hasCloudinaryConfig) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  storage = new CloudinaryStorage({
+    cloudinary,
+    params: async () => ({
+      folder: "lms/submissions",
+      resource_type: "auto",
+      public_id: `sub-${Date.now()}`,
+    }),
+  });
+  log.info("storage:cloudinary:enabled", { scope: "submissions" });
+} else {
+  storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const uploadDir = "uploads/submissions";
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(
+        null,
+        file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
+      );
+    },
+  });
+  log.info("storage:local:enabled", { scope: "submissions" });
+}
 
 const upload = multer({
   storage: storage,
@@ -69,10 +103,12 @@ exports.submitAssignment = async (req, res) => {
       });
     }
 
-    console.log("\n=== SUBMIT ASSIGNMENT ===");
-    console.log("👤 Student:", req.user.name);
-    console.log("📝 Assignment ID:", req.body.assignmentId);
-    console.log("📎 Files:", req.files?.length || 0);
+    const reqLog = log.child({ requestId: req.id, userId: req.user?._id });
+    reqLog.info("submission:create:start", {
+      student: req.user?.name,
+      assignmentId: req.body.assignmentId,
+      files: req.files?.length || 0,
+    });
 
     try {
       const { assignmentId, textSubmission } = req.body;
@@ -80,6 +116,7 @@ exports.submitAssignment = async (req, res) => {
       // Check if assignment exists
       const assignment = await Assignment.findById(assignmentId);
       if (!assignment) {
+        reqLog.warn("submission:create:assignment:notFound", { assignmentId });
         return res.status(404).json({
           success: false,
           error: "Assignment not found",
@@ -93,6 +130,10 @@ exports.submitAssignment = async (req, res) => {
       });
 
       if (!enrollment) {
+        reqLog.warn("submission:create:notEnrolled", {
+          assignmentId,
+          course: assignment.course,
+        });
         return res.status(403).json({
           success: false,
           error: "You are not enrolled in this course",
@@ -106,6 +147,9 @@ exports.submitAssignment = async (req, res) => {
       });
 
       if (existingSubmission) {
+        reqLog.warn("submission:create:duplicate", {
+          submissionId: existingSubmission._id,
+        });
         return res.status(400).json({
           success: false,
           error: "You have already submitted this assignment",
@@ -118,6 +162,10 @@ exports.submitAssignment = async (req, res) => {
       const isLate = now > dueDate;
 
       if (isLate && !assignment.allowLateSubmission) {
+        reqLog.warn("submission:create:lateNotAllowed", {
+          assignmentId,
+          dueDate: assignment.dueDate,
+        });
         return res.status(400).json({
           success: false,
           error: "Late submissions are not allowed for this assignment",
@@ -125,13 +173,23 @@ exports.submitAssignment = async (req, res) => {
       }
 
       // Prepare file data
+      const usingCloud = !!(
+        hasCloudinaryConfig &&
+        req.files &&
+        req.files.length &&
+        (req.files[0].secure_url ||
+          (req.files[0].path && req.files[0].path.startsWith("http")))
+      );
       const files = req.files
         ? req.files.map((file) => ({
-            filename: file.filename,
-            originalName: file.originalname,
-            path: file.path,
+            filename: file.filename || file.public_id,
+            originalName: file.originalname || file.original_filename,
+            path: file.path || file.secure_url,
+            url: file.secure_url || file.path,
             mimetype: file.mimetype,
             size: file.size,
+            provider: usingCloud ? "cloudinary" : "local",
+            publicId: file.public_id || undefined,
           }))
         : [];
 
@@ -146,8 +204,10 @@ exports.submitAssignment = async (req, res) => {
 
       await submission.save();
 
-      console.log("✅ Assignment submitted successfully");
-      console.log(`⏰ ${isLate ? "LATE" : "ON TIME"} submission`);
+      reqLog.info("submission:create:success", {
+        submissionId: submission._id,
+        late: isLate,
+      });
 
       res.status(201).json({
         success: true,
@@ -157,7 +217,11 @@ exports.submitAssignment = async (req, res) => {
           : "Assignment submitted successfully",
       });
     } catch (error) {
-      console.error("❌ SUBMIT ASSIGNMENT ERROR:", error);
+      log.error("submission:create:error", {
+        requestId: req.id,
+        error: error.message,
+        stack: error.stack,
+      });
       res.status(500).json({
         success: false,
         error: error.message,
@@ -192,7 +256,10 @@ exports.getMySubmissions = async (req, res) => {
       count: submissions.length,
     });
   } catch (error) {
-    console.error("❌ GET MY SUBMISSIONS ERROR:", error);
+    log.error("submission:listMine:error", {
+      requestId: req.id,
+      error: error.message,
+    });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -210,6 +277,10 @@ exports.getAssignmentSubmissions = async (req, res) => {
     const assignment = await Assignment.findById(req.params.assignmentId);
 
     if (!assignment) {
+      log.warn("submission:listForAssignment:assignment:notFound", {
+        requestId: req.id,
+        assignmentId: req.params.assignmentId,
+      });
       return res.status(404).json({
         success: false,
         error: "Assignment not found",
@@ -218,6 +289,10 @@ exports.getAssignmentSubmissions = async (req, res) => {
 
     // Check if teacher owns this assignment
     if (assignment.teacher.toString() !== req.user._id.toString()) {
+      log.warn("submission:listForAssignment:forbidden", {
+        requestId: req.id,
+        teacherId: req.user._id,
+      });
       return res.status(403).json({
         success: false,
         error: "Not authorized to view these submissions",
@@ -236,7 +311,10 @@ exports.getAssignmentSubmissions = async (req, res) => {
       count: submissions.length,
     });
   } catch (error) {
-    console.error("❌ GET ASSIGNMENT SUBMISSIONS ERROR:", error);
+    log.error("submission:listForAssignment:error", {
+      requestId: req.id,
+      error: error.message,
+    });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -250,10 +328,15 @@ exports.getAssignmentSubmissions = async (req, res) => {
  * @access  Private (Teacher only)
  */
 exports.gradeSubmission = async (req, res) => {
-  console.log("\n=== GRADE SUBMISSION ===");
-  console.log("👤 Teacher:", req.user.name);
-  console.log("📝 Submission ID:", req.params.id);
-  console.log("🎯 Grade:", req.body.grade);
+  const reqLog = log.child({
+    requestId: req.id,
+    userId: req.user?._id,
+    submissionId: req.params.id,
+  });
+  reqLog.info("submission:grade:start", {
+    teacher: req.user?.name,
+    grade: req.body.grade,
+  });
 
   try {
     const { grade, feedback } = req.body;
@@ -263,6 +346,7 @@ exports.gradeSubmission = async (req, res) => {
     );
 
     if (!submission) {
+      reqLog.warn("submission:grade:notFound");
       return res.status(404).json({
         success: false,
         error: "Submission not found",
@@ -271,6 +355,7 @@ exports.gradeSubmission = async (req, res) => {
 
     // Check if teacher owns this assignment
     if (submission.assignment.teacher.toString() !== req.user._id.toString()) {
+      reqLog.warn("submission:grade:forbidden", { teacherId: req.user._id });
       return res.status(403).json({
         success: false,
         error: "Not authorized to grade this submission",
@@ -279,6 +364,10 @@ exports.gradeSubmission = async (req, res) => {
 
     // Validate grade
     if (grade < 0 || grade > submission.assignment.totalPoints) {
+      reqLog.warn("submission:grade:invalidGrade", {
+        max: submission.assignment.totalPoints,
+        received: grade,
+      });
       return res.status(400).json({
         success: false,
         error: `Grade must be between 0 and ${submission.assignment.totalPoints}`,
@@ -295,9 +384,7 @@ exports.gradeSubmission = async (req, res) => {
       const penalty =
         (submission.assignment.lateSubmissionPenalty / 100) * grade * daysLate;
       finalGrade = Math.max(0, grade - penalty);
-      console.log(
-        `⚠️ Late penalty applied: ${daysLate} days, ${penalty} points deducted`
-      );
+      reqLog.info("submission:grade:latePenalty", { daysLate, penalty });
     }
 
     submission.grade = finalGrade;
@@ -308,10 +395,10 @@ exports.gradeSubmission = async (req, res) => {
 
     await submission.save();
 
-    console.log("✅ Submission graded successfully");
-    console.log(
-      `📊 Final grade: ${finalGrade}/${submission.assignment.totalPoints}`
-    );
+    reqLog.info("submission:grade:success", {
+      finalGrade,
+      total: submission.assignment.totalPoints,
+    });
 
     // Populate student and assignment details for email
     await submission.populate([
@@ -321,16 +408,18 @@ exports.gradeSubmission = async (req, res) => {
 
     // Send email notification to student
     try {
-      console.log("📧 Sending grade notification email...");
+      reqLog.debug("submission:grade:email:start");
       await sendGradeNotificationEmail(
         submission.student,
         submission.assignment,
         submission,
         req.user
       );
-      console.log("✅ Grade notification email sent");
+      reqLog.debug("submission:grade:email:sent");
     } catch (emailError) {
-      console.error("❌ Error sending grade notification email:", emailError);
+      reqLog.warn("submission:grade:email:error", {
+        error: emailError.message,
+      });
       // Don't fail the request if email fails
     }
 
@@ -340,7 +429,11 @@ exports.gradeSubmission = async (req, res) => {
       message: "Submission graded successfully",
     });
   } catch (error) {
-    console.error("❌ GRADE SUBMISSION ERROR:", error);
+    log.error("submission:grade:error", {
+      requestId: req.id,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(400).json({
       success: false,
       error: error.message,
@@ -399,7 +492,11 @@ exports.getSubmission = async (req, res) => {
       submission,
     });
   } catch (error) {
-    console.error("❌ GET SUBMISSION ERROR:", error);
+    log.error("submission:get:error", {
+      requestId: req.id,
+      id: req.params.id,
+      error: error.message,
+    });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -417,6 +514,10 @@ exports.deleteSubmission = async (req, res) => {
     const submission = await Submission.findById(req.params.id);
 
     if (!submission) {
+      log.warn("submission:delete:notFound", {
+        requestId: req.id,
+        id: req.params.id,
+      });
       return res.status(404).json({
         success: false,
         error: "Submission not found",
@@ -425,6 +526,10 @@ exports.deleteSubmission = async (req, res) => {
 
     // Check if student owns this submission
     if (submission.student.toString() !== req.user._id.toString()) {
+      log.warn("submission:delete:forbidden", {
+        requestId: req.id,
+        studentId: req.user._id,
+      });
       return res.status(403).json({
         success: false,
         error: "Not authorized to delete this submission",
@@ -433,19 +538,46 @@ exports.deleteSubmission = async (req, res) => {
 
     // Don't allow deletion if already graded
     if (submission.status === "graded") {
+      log.warn("submission:delete:alreadyGraded", { requestId: req.id });
       return res.status(400).json({
         success: false,
         error: "Cannot delete a graded submission",
       });
     }
 
-    // Delete associated files
+    // Delete associated files (cloud or local)
     if (submission.files && submission.files.length > 0) {
-      submission.files.forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
+      for (const file of submission.files) {
+        const isCloud =
+          file.provider === "cloudinary" ||
+          (file.path && /^https?:\/\//.test(file.path));
+        if (isCloud && cloudinary) {
+          try {
+            const publicId = file.publicId || file.filename;
+            if (publicId) {
+              await cloudinary.uploader.destroy(publicId, {
+                resource_type: "auto",
+              });
+              log.debug("cloudinary:deleted", { publicId });
+            }
+          } catch (e) {
+            log.warn("cloudinary:delete:error", {
+              publicId: file.publicId || file.filename,
+              error: e.message,
+            });
+          }
+        } else if (file.path) {
+          try {
+            const abs = path.resolve(file.path);
+            if (fs.existsSync(abs)) fs.unlinkSync(abs);
+          } catch (e) {
+            log.warn("localFile:delete:error", {
+              path: file.path,
+              error: e.message,
+            });
+          }
         }
-      });
+      }
     }
 
     await submission.deleteOne();
@@ -455,7 +587,11 @@ exports.deleteSubmission = async (req, res) => {
       message: "Submission deleted successfully",
     });
   } catch (error) {
-    console.error("❌ DELETE SUBMISSION ERROR:", error);
+    log.error("submission:delete:error", {
+      requestId: req.id,
+      id: req.params.id,
+      error: error.message,
+    });
     res.status(500).json({
       success: false,
       error: error.message,
@@ -475,6 +611,10 @@ exports.downloadFile = async (req, res) => {
     );
 
     if (!submission) {
+      log.warn("submission:download:notFound", {
+        requestId: req.id,
+        id: req.params.id,
+      });
       return res.status(404).json({
         success: false,
         error: "Submission not found",
@@ -490,6 +630,10 @@ exports.downloadFile = async (req, res) => {
       submission.assignment.teacher.toString() === req.user._id.toString();
 
     if (!isStudent && !isTeacher) {
+      log.warn("submission:download:forbidden", {
+        requestId: req.id,
+        userId: req.user._id,
+      });
       return res.status(403).json({
         success: false,
         error: "Not authorized to download this file",
@@ -502,6 +646,10 @@ exports.downloadFile = async (req, res) => {
       fileIndex < 0 ||
       fileIndex >= submission.files.length
     ) {
+      log.warn("submission:download:fileIndexInvalid", {
+        requestId: req.id,
+        fileIndex,
+      });
       return res.status(404).json({
         success: false,
         error: "File not found",
@@ -509,18 +657,27 @@ exports.downloadFile = async (req, res) => {
     }
 
     const file = submission.files[fileIndex];
+    const fileUrl = file.url || file.path;
+    if (fileUrl && /^https?:\/\//.test(fileUrl)) {
+      return res.redirect(fileUrl);
+    }
     const filePath = path.resolve(file.path);
-
     if (!fs.existsSync(filePath)) {
+      log.warn("submission:download:fileMissing", {
+        requestId: req.id,
+        path: filePath,
+      });
       return res.status(404).json({
         success: false,
         error: "File not found on server",
       });
     }
-
     res.download(filePath, file.originalName);
   } catch (error) {
-    console.error("❌ DOWNLOAD FILE ERROR:", error);
+    log.error("submission:download:error", {
+      requestId: req.id,
+      error: error.message,
+    });
     res.status(500).json({
       success: false,
       error: error.message,

@@ -3,6 +3,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
 const connectDB = require("./config/db");
+const { createLogger } = require("./utils/logger");
+const { randomUUID } = require("crypto");
 
 // Load env vars from .env file in backend root
 dotenv.config();
@@ -11,9 +13,30 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const log = createLogger("server");
 
 // Body parser
 app.use(express.json());
+
+// Assign request id and log lifecycle
+app.use((req, res, next) => {
+  req.id = req.headers["x-request-id"] || randomUUID();
+  const reqLog = log.child({
+    requestId: req.id,
+    method: req.method,
+    path: req.path,
+  });
+  const start = process.hrtime.bigint();
+  reqLog.info("request:start", { ip: req.ip, origin: req.headers.origin });
+  res.on("finish", () => {
+    const durMs = Number(process.hrtime.bigint() - start) / 1e6;
+    reqLog.info("request:finish", {
+      status: res.statusCode,
+      durationMs: Math.round(durMs),
+    });
+  });
+  next();
+});
 
 // Enable CORS
 app.use(cors());
