@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { enrollmentAPI, submissionAPI } from "../api";
+import axios from "axios";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -46,13 +46,19 @@ const Grades = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Fetch graded submissions and enrolled courses
-    const fetchGradesAndCourses = async () => {
+    // Fetch graded submissions
+    const fetchGrades = async () => {
       try {
-        // 1) Fetch my submissions (graded only)
-        const subRes = await submissionAPI.getMySubmissions();
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          "http://localhost:5001/api/submissions/my-submissions",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        // Filter only graded submissions
         const gradedSubmissions =
-          subRes.data.submissions?.filter(
+          response.data.submissions?.filter(
             (sub) =>
               sub.grade !== undefined &&
               sub.grade !== null &&
@@ -60,29 +66,21 @@ const Grades = () => {
           ) || [];
         setGrades(gradedSubmissions);
 
-        // 2) Fetch my enrollments and extract unique courses (by _id)
-        const enrRes = await enrollmentAPI.getMyEnrollments();
-        const enrolledCoursesRaw = (enrRes.data.enrollments || [])
-          .map((e) => e.course)
-          .filter(Boolean);
-        const seen = new Set();
-        const uniqueCourses = [];
-        for (const c of enrolledCoursesRaw) {
-          const id = c?._id?.toString();
-          if (id && !seen.has(id)) {
-            seen.add(id);
-            uniqueCourses.push(c);
-          }
-        }
-        // Optional: sort by title
-        uniqueCourses.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        // Extract unique courses
+        const uniqueCourses = [
+          ...new Set(
+            gradedSubmissions
+              .map((sub) => sub.assignment?.course)
+              .filter((course) => course)
+          ),
+        ];
         setCourses(uniqueCourses);
       } catch (error) {
-        console.error("Failed to fetch grades or courses:", error);
+        console.error("Failed to fetch grades:", error);
       }
     };
     if (user) {
-      fetchGradesAndCourses();
+      fetchGrades();
     }
   }, [user]);
 

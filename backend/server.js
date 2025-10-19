@@ -17,6 +17,12 @@ const log = createLogger("server");
 
 // Body parser
 app.use(express.json());
+app.use(
+  cors({
+    origin: "https://lms-mbu-aqux.vercel.app",
+    credentials: true,
+  })
+);
 
 // Assign request id and log lifecycle
 app.use((req, res, next) => {
