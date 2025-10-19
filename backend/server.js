@@ -61,6 +61,7 @@ const gradeRoutes = require("./routes/gradeRoutes");
 const enrollmentRoutes = require("./routes/enrollmentRoutes");
 const liveClassRoutes = require("./routes/liveClassRoutes");
 const assessmentRoutes = require("./routes/assessmentRoutes");
+const emailTestRoutes = require("./routes/emailTest");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
@@ -70,6 +71,7 @@ app.use("/api/grades", gradeRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/live-classes", liveClassRoutes);
 app.use("/api/assessments", assessmentRoutes);
+app.use("/api/email-test", emailTestRoutes);
 
 // In-memory email delivery stats (for basic diagnostics only; resets on restart)
 const emailStats = { lastBatch: null };

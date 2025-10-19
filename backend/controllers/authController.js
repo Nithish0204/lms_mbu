@@ -35,6 +35,11 @@ exports.verifyOtp = async (req, res) => {
     user.otpExpiry = undefined;
     await user.save();
 
+    // Send welcome email asynchronously (don't block verification)
+    sendWelcomeEmail(user).catch((error) => {
+      console.error("⚠️ Failed to send welcome email:", error.message);
+    });
+
     // Generate JWT token
     const token = jwt.sign(
       { id: user._id, role: user.role },

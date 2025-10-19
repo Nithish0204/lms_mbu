@@ -2,6 +2,9 @@ const Assessment = require("../models/Assessment");
 const AssessmentSubmission = require("../models/AssessmentSubmission");
 const Course = require("../models/Course");
 const Enrollment = require("../models/Enrollment");
+const {
+  sendAssessmentNotificationToStudents,
+} = require("../utils/emailService");
 
 /**
  * @desc    Create a new assessment
@@ -21,6 +24,43 @@ exports.createAssessment = async (req, res) => {
 
     await assessment.save();
     console.log("✅ Assessment created:", assessment._id);
+
+    // Get course details with teacher info
+    const course = await Course.findById(assessment.course).populate(
+      "teacher",
+      "name email"
+    );
+
+    if (course) {
+      // Get all enrolled students
+      const enrollments = await Enrollment.find({
+        course: assessment.course,
+        $or: [
+          { status: "active" },
+          { status: { $exists: false } }, // Old enrollments without status field
+        ],
+      }).populate("student", "name email");
+
+      const students = enrollments.map((e) => e.student);
+      console.log(
+        `📧 Sending assessment notifications to ${students.length} enrolled students`
+      );
+
+      // Send notifications to all enrolled students (asynchronously)
+      if (students.length > 0) {
+        sendAssessmentNotificationToStudents(
+          students,
+          assessment,
+          course,
+          req.user
+        ).catch((error) => {
+          console.error(
+            `⚠️ Failed to send assessment notifications:`,
+            error.message
+          );
+        });
+      }
+    }
 
     res.status(201).json({
       success: true,

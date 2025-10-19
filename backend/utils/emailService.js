@@ -78,9 +78,19 @@ const createTransporter = () => {
 };
 
 /**
- * Send email with error handling
+ * Send email with error handling and detailed logging
  */
 const sendEmail = async (mailOptions) => {
+  const startTime = Date.now();
+  console.log(`\n📧 Attempting to send email:`);
+  console.log(`   To: ${mailOptions.to}`);
+  console.log(`   Subject: ${mailOptions.subject}`);
+  console.log(
+    `   Provider: ${
+      sgMail && process.env.SENDGRID_API_KEY ? "SendGrid" : "SMTP"
+    }`
+  );
+
   // Prefer SendGrid if configured
   if (sgMail && process.env.SENDGRID_API_KEY) {
     try {
@@ -91,21 +101,66 @@ const sendEmail = async (mailOptions) => {
         html: mailOptions.html,
         text: mailOptions.text,
       };
+
+      console.log(`   From: ${msg.from}`);
       const [response] = await sgMail.send(msg);
-      console.log(
-        `✅ SendGrid: Email sent to ${mailOptions.to}:`,
-        response.statusCode
-      );
+      const duration = Date.now() - startTime;
+
+      console.log(`✅ SendGrid SUCCESS (${duration}ms):`);
+      console.log(`   Status: ${response.statusCode}`);
+      console.log(`   To: ${mailOptions.to}`);
+      console.log(`   Subject: ${mailOptions.subject}\n`);
+
       return {
         success: true,
         provider: "sendgrid",
         status: response.statusCode,
+        duration,
       };
     } catch (error) {
-      console.error(
-        "❌ SendGrid send error:",
-        error.response?.body || error.message || error
-      );
+      const duration = Date.now() - startTime;
+      console.error(`\n❌ SendGrid FAILED (${duration}ms):`);
+      console.error(`   Error Code: ${error.code}`);
+      console.error(`   Error Message: ${error.message}`);
+
+      if (error.response?.body) {
+        console.error(
+          `   Response Body:`,
+          JSON.stringify(error.response.body, null, 2)
+        );
+
+        // Check for specific blocking reasons
+        const errorBody = error.response.body;
+        if (errorBody.errors) {
+          errorBody.errors.forEach((err, index) => {
+            console.error(`   Error ${index + 1}:`);
+            console.error(`     Message: ${err.message}`);
+            console.error(`     Field: ${err.field}`);
+            console.error(`     Help: ${err.help}`);
+          });
+        }
+      }
+
+      // Check if email was blocked
+      if (
+        error.code === 403 ||
+        error.message?.includes("forbidden") ||
+        error.message?.includes("blocked")
+      ) {
+        console.error(
+          `   ⚠️  EMAIL BLOCKED: Sender not verified or domain restrictions`
+        );
+      }
+      if (error.message?.includes("does not contain a valid address")) {
+        console.error(
+          `   ⚠️  INVALID EMAIL: Recipient email format is invalid`
+        );
+      }
+      if (error.message?.includes("Unauthorized")) {
+        console.error(`   ⚠️  AUTHENTICATION FAILED: Check SENDGRID_API_KEY`);
+      }
+
+      console.error(`   Falling back to SMTP...\n`);
       // fall through to SMTP below
     }
   }
@@ -116,16 +171,54 @@ const sendEmail = async (mailOptions) => {
     console.log("📧 [DEMO MODE] Email would be sent:");
     console.log("   To:", mailOptions.to);
     console.log("   Subject:", mailOptions.subject);
+    console.log("   Note: Configure SMTP or SendGrid to send real emails\n");
     return { success: true, demo: true };
   }
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${mailOptions.to}: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    const duration = Date.now() - startTime;
+
+    console.log(`✅ SMTP SUCCESS (${duration}ms):`);
+    console.log(`   MessageId: ${info.messageId}`);
+    console.log(`   To: ${mailOptions.to}`);
+    console.log(`   Subject: ${mailOptions.subject}\n`);
+
+    return {
+      success: true,
+      provider: "smtp",
+      messageId: info.messageId,
+      duration,
+    };
   } catch (error) {
-    console.error(`❌ Error sending email to ${mailOptions.to}:`, error);
-    return { success: false, error: error.message, fullError: error };
+    const duration = Date.now() - startTime;
+
+    console.error(`\n❌ SMTP FAILED (${duration}ms):`);
+    console.error(`   Error: ${error.message}`);
+    console.error(`   Code: ${error.code}`);
+    console.error(`   To: ${mailOptions.to}`);
+
+    // Check for specific SMTP errors
+    if (error.code === "EAUTH") {
+      console.error(`   ⚠️  AUTHENTICATION FAILED: Check SMTP credentials`);
+    }
+    if (error.code === "ECONNECTION" || error.code === "ETIMEDOUT") {
+      console.error(`   ⚠️  CONNECTION FAILED: Check SMTP host and port`);
+    }
+    if (error.responseCode === 550) {
+      console.error(
+        `   ⚠️  EMAIL REJECTED: Recipient may not exist or blocked`
+      );
+    }
+    console.error(`\n`);
+
+    return {
+      success: false,
+      provider: "smtp",
+      error: error.message,
+      code: error.code,
+      duration,
+    };
   }
 };
 
@@ -406,6 +499,97 @@ exports.sendAssignmentNotificationToStudents = async (
   ).length;
   console.log(
     `✅ Assignment notifications sent: ${successCount}/${students.length}`
+  );
+
+  return { success: true, sent: successCount, total: students.length };
+};
+
+/**
+ * Send assessment notification to students
+ */
+exports.sendAssessmentNotificationToStudents = async (
+  students,
+  assessment,
+  course,
+  teacher
+) => {
+  const emailPromises = students.map((student) => {
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || "LMS Platform <noreply@lms.com>",
+      to: student.email,
+      subject: `📊 New Assessment Available: ${assessment.title} | ${course.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; text-align: center;">New Assessment Available! 📊</h1>
+          </div>
+          
+          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+            <h2 style="color: #1f2937;">Hi ${student.name}! 👋</h2>
+            
+            <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+              Your instructor has created a new assessment in <strong>${
+                course.title
+              }</strong>.
+            </p>
+            
+            <div style="background: white; padding: 25px; border-radius: 8px; margin: 25px 0; border: 2px solid #8b5cf6;">
+              <h3 style="margin: 0 0 15px 0; color: #7c3aed; font-size: 20px;">${
+                assessment.title
+              }</h3>
+              ${
+                assessment.description
+                  ? `<p style="margin: 10px 0; color: #6b7280; line-height: 1.6;">${assessment.description}</p>`
+                  : ""
+              }
+              
+              <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 5px 0; color: #1f2937;">📅 <strong>Due Date:</strong> ${new Date(
+                  assessment.dueDate
+                ).toLocaleString()}</p>
+                <p style="margin: 5px 0; color: #1f2937;">⏱️ <strong>Duration:</strong> ${
+                  assessment.duration
+                } minutes</p>
+                <p style="margin: 5px 0; color: #1f2937;">📝 <strong>Total Points:</strong> ${
+                  assessment.totalPoints
+                }</p>
+                <p style="margin: 5px 0; color: #1f2937;">👨‍🏫 <strong>Instructor:</strong> ${
+                  teacher.name
+                }</p>
+              </div>
+            </div>
+            
+            <div style="background: #ede9fe; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8b5cf6;">
+              <p style="margin: 0; color: #5b21b6; font-size: 14px;">
+                ⚠️ <strong>Important:</strong> Make sure to complete the assessment before the deadline. You have ${
+                  assessment.duration
+                } minutes once you start!
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${
+                process.env.FRONTEND_URL || "http://localhost:3000"
+              }/assessments" 
+                 style="display: inline-block; padding: 15px 40px; background: #8b5cf6; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                View Assessment
+              </a>
+            </div>
+          </div>
+        </div>
+      `,
+    };
+
+    return sendEmail(mailOptions);
+  });
+
+  const results = await Promise.allSettled(emailPromises);
+
+  const successCount = results.filter(
+    (r) => r.status === "fulfilled" && r.value.success
+  ).length;
+  console.log(
+    `✅ Assessment notifications sent: ${successCount}/${students.length}`
   );
 
   return { success: true, sent: successCount, total: students.length };
