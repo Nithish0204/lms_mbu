@@ -21,5 +21,7 @@ const EnrollmentSchema = new mongoose.Schema({
 
 // Create unique compound index on correct field names
 EnrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
+EnrollmentSchema.index({ student: 1, status: 1 });
+EnrollmentSchema.index({ course: 1, status: 1 });
 
 module.exports = mongoose.model("Enrollment", EnrollmentSchema);

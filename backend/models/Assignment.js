@@ -79,3 +79,7 @@ AssignmentSchema.pre("save", function (next) {
 });
 
 module.exports = mongoose.model("Assignment", AssignmentSchema);
+
+// Helpful indexes for common queries
+AssignmentSchema.index({ course: 1, dueDate: -1 });
+AssignmentSchema.index({ teacher: 1, createdAt: -1 });

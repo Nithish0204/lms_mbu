@@ -14,7 +14,8 @@ exports.getGrades = async (req, res) => {
   try {
     const grades = await Grade.find()
       .populate("student", "name email")
-      .populate("assignment", "title");
+      .populate("assignment", "title")
+      .lean();
     res.json({ success: true, grades });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -28,7 +29,8 @@ exports.getMyGrades = async (req, res) => {
       .populate({
         path: "assignment",
         populate: { path: "course", select: "title" },
-      });
+      })
+      .lean();
     res.json({ success: true, grades });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

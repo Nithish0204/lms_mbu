@@ -79,7 +79,8 @@ exports.getEnrollments = async (req, res) => {
   try {
     const enrollments = await Enrollment.find()
       .populate("student", "name email")
-      .populate("course", "title description");
+      .populate("course", "title description")
+      .lean();
     res.json({ success: true, enrollments });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -93,7 +94,8 @@ exports.getMyEnrollments = async (req, res) => {
       .populate({
         path: "course",
         populate: { path: "teacher", select: "name email" },
-      });
+      })
+      .lean();
     res.json({ success: true, enrollments });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -105,7 +107,7 @@ exports.checkEnrollment = async (req, res) => {
     const enrollment = await Enrollment.findOne({
       student: req.user._id,
       course: req.params.courseId,
-    });
+    }).lean();
     res.json({ success: true, enrolled: !!enrollment });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -174,7 +176,8 @@ exports.getCourseEnrollments = async (req, res) => {
       ],
     })
       .populate("student", "name email")
-      .sort({ enrolledAt: -1 });
+      .sort({ enrolledAt: -1 })
+      .lean();
 
     console.log(`✅ Found ${enrollments.length} enrollments`);
     res.json({

@@ -71,6 +71,12 @@ app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/live-classes", liveClassRoutes);
 app.use("/api/assessments", assessmentRoutes);
 
+// In-memory email delivery stats (for basic diagnostics only; resets on restart)
+const emailStats = { lastBatch: null };
+
+// Hook to allow controllers to publish email results
+app.set("emailStats", emailStats);
+
 // Health check endpoint for deployment diagnostics
 app.get("/api/health", (req, res) => {
   res.json({
@@ -116,6 +122,12 @@ app.get("/api/health/email", (req, res) => {
       sendgridValidationEnabled: sgValidationEnabled,
     },
   });
+});
+
+// Email delivery diagnostics
+app.get("/api/health/email/deliveries", (req, res) => {
+  const stats = app.get("emailStats") || {};
+  res.json({ ok: true, stats });
 });
 const PORT = process.env.PORT || 5000;
 

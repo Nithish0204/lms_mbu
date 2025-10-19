@@ -3,7 +3,10 @@ const Course = require("../models/Course");
 const Enrollment = require("../models/Enrollment");
 const User = require("../models/User");
 const { RtcTokenBuilder, RtcRole } = require("agora-access-token");
-const { sendLiveClassNotification } = require("../utils/emailService");
+const {
+  sendLiveClassNotification,
+  sendLiveClassNotificationToStudents,
+} = require("../utils/emailService");
 
 /**
  * Generate unique Agora channel name
@@ -133,32 +136,39 @@ exports.createLiveClass = async (req, res) => {
       `📧 Sending notifications to ${enrollments.length} enrolled students`
     );
 
-    // Send email notifications to all enrolled students
-    const emailPromises = enrollments.map((enrollment) =>
-      sendLiveClassNotification(enrollment.student, liveClass, course, req.user)
-        .then(() => {
-          console.log(
-            `✅ Email sent successfully to ${enrollment.student.email}`
-          );
-        })
-        .catch((error) => {
-          console.error(
-            `⚠️ Failed to send notification to ${enrollment.student.email}:`,
-            error.message
-          );
-        })
+    // Prepare student list and send in batch to gather accurate results
+    const students = enrollments.map((e) => e.student);
+    const notifyResult = await sendLiveClassNotificationToStudents(
+      students,
+      liveClass,
+      course,
+      req.user
     );
 
-    // Wait for all emails to complete
-    await Promise.all(emailPromises);
+    // Publish to server email stats for diagnostics
+    try {
+      const emailStats = req.app.get("emailStats");
+      if (emailStats) {
+        emailStats.lastBatch = {
+          at: new Date().toISOString(),
+          context: "live-class-create",
+          courseId: course._id?.toString?.() || String(course._id || courseId),
+          liveClassId: liveClass._id?.toString?.(),
+          total: notifyResult.total,
+          sent: notifyResult.sent,
+        };
+      }
+    } catch (_) {}
+
     console.log(
-      `📧 Email sending process completed for ${enrollments.length} students`
+      `📧 Email sending process completed: ${notifyResult.sent}/${notifyResult.total} delivered`
     );
 
     res.status(201).json({
       success: true,
       liveClass,
-      message: `Live class scheduled successfully. Notifications sent to ${enrollments.length} students.`,
+      message: `Live class scheduled successfully. Notifications sent: ${notifyResult.sent}/${notifyResult.total}.`,
+      notifications: notifyResult,
     });
   } catch (error) {
     console.error("❌ CREATE LIVE CLASS ERROR:", error);
@@ -184,7 +194,8 @@ exports.getCourseLiveClasses = async (req, res) => {
 
     const liveClasses = await LiveClass.find({ course: courseId })
       .populate("teacher", "name email")
-      .sort({ scheduledAt: -1 });
+      .sort({ scheduledAt: -1 })
+      .lean();
 
     console.log(`✅ Found ${liveClasses.length} live classes`);
 
@@ -270,7 +281,8 @@ exports.getMyLiveClasses = async (req, res) => {
     })
       .populate("course", "title")
       .populate("teacher", "name email")
-      .sort({ scheduledAt: 1 });
+      .sort({ scheduledAt: 1 })
+      .lean();
 
     console.log(
       `✅ Found ${liveClasses.length} live classes (scheduled or ongoing)`
@@ -343,7 +355,8 @@ exports.getMyScheduledClasses = async (req, res) => {
       teacher: req.user._id,
     })
       .populate("course", "title")
-      .sort({ scheduledAt: -1 });
+      .sort({ scheduledAt: -1 })
+      .lean();
 
     console.log(`✅ Found ${liveClasses.length} scheduled classes`);
 
