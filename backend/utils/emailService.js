@@ -26,6 +26,8 @@ exports.sendOtpEmail = async (user, otp) => {
         </div>
       </div>
     `,
+    transactional: true,
+    category: "otp",
   };
   return await sendEmail(mailOptions);
 };
@@ -79,6 +81,10 @@ const createTransporter = () => {
 
 /**
  * Send email with error handling and detailed logging
+ * Enhancements for deliverability:
+ * - Adds plain-text fallback
+ * - Disables tracking for transactional emails by default (configurable)
+ * - Supports categories and List-Unsubscribe header
  */
 const sendEmail = async (mailOptions) => {
   const startTime = Date.now();
@@ -91,6 +97,63 @@ const sendEmail = async (mailOptions) => {
     }`
   );
 
+  // Build plain-text fallback to improve spam placement
+  const textFallback =
+    mailOptions.text ||
+    (mailOptions.html
+      ? mailOptions.html
+          .replace(/<style[\s\S]*?<\/style>/gi, " ")
+          .replace(/<script[\s\S]*?<\/script>/gi, " ")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/&nbsp;/g, " ")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/\s+/g, " ")
+          .trim()
+      : undefined);
+
+  // Determine tracking behavior
+  const disableAllTracking = String(
+    process.env.EMAIL_DISABLE_TRACKING_FOR_ALL || "false"
+  )
+    .toLowerCase()
+    .includes("true");
+  const disableTransactionalDefault = String(
+    process.env.EMAIL_DISABLE_TRACKING_FOR_TRANSACTIONAL || "true"
+  )
+    .toLowerCase()
+    .includes("true");
+  const isTransactional = Boolean(mailOptions.transactional);
+  const disableTracking =
+    disableAllTracking || (isTransactional && disableTransactionalDefault);
+
+  const trackingSettings = disableTracking
+    ? {
+        clickTracking: { enable: false, enableText: false },
+        openTracking: { enable: false },
+      }
+    : undefined;
+
+  // Categories for SendGrid analytics (optional but useful)
+  const categories = Array.isArray(mailOptions.categories)
+    ? mailOptions.categories
+    : mailOptions.category
+    ? [mailOptions.category]
+    : undefined;
+
+  // Optional List-Unsubscribe header (not needed for OTP, purely informational)
+  const listUnsub = mailOptions.listUnsubscribe;
+  if (listUnsub) {
+    mailOptions.headers = Object.assign({}, mailOptions.headers, {
+      "List-Unsubscribe": `<${listUnsub}>`,
+    });
+  }
+  // Ensure text fallback is set for SMTP path too
+  if (textFallback && !mailOptions.text) {
+    mailOptions.text = textFallback;
+  }
+
   // Prefer SendGrid if configured
   if (sgMail && process.env.SENDGRID_API_KEY) {
     try {
@@ -99,7 +162,11 @@ const sendEmail = async (mailOptions) => {
         from: process.env.EMAIL_FROM || "LMS Platform <noreply@lms.com>",
         subject: mailOptions.subject,
         html: mailOptions.html,
-        text: mailOptions.text,
+        text: textFallback,
+        trackingSettings,
+        categories,
+        headers: mailOptions.headers,
+        replyTo: process.env.EMAIL_REPLY_TO || undefined,
       };
 
       console.log(`   From: ${msg.from}`);
@@ -278,6 +345,8 @@ exports.sendWelcomeEmail = async (user) => {
         </div>
       </div>
     `,
+    transactional: true,
+    category: "welcome",
   };
 
   return await sendEmail(mailOptions);
@@ -344,6 +413,8 @@ exports.sendEnrollmentNotificationToTeacher = async (
         </div>
       </div>
     `,
+    transactional: true,
+    category: "enrollment_teacher",
   };
 
   return await sendEmail(mailOptions);
@@ -418,6 +489,8 @@ exports.sendEnrollmentConfirmationToStudent = async (
         </div>
       </div>
     `,
+    transactional: true,
+    category: "enrollment_student",
   };
 
   return await sendEmail(mailOptions);
@@ -487,6 +560,8 @@ exports.sendAssignmentNotificationToStudents = async (
           </div>
         </div>
       `,
+      transactional: true,
+      category: "assignment",
     };
 
     return sendEmail(mailOptions);
@@ -578,6 +653,8 @@ exports.sendAssessmentNotificationToStudents = async (
           </div>
         </div>
       `,
+      transactional: true,
+      category: "assessment",
     };
 
     return sendEmail(mailOptions);
@@ -666,6 +743,8 @@ exports.sendLiveClassNotification = async (
         </div>
       </div>
     `,
+    transactional: true,
+    category: "live_class",
   };
 
   return await sendEmail(mailOptions);
@@ -740,6 +819,8 @@ exports.sendLiveClassNotificationToStudents = async (
           </div>
         </div>
       `,
+      transactional: true,
+      category: "live_class",
     };
 
     return sendEmail(mailOptions);
@@ -850,6 +931,8 @@ exports.sendGradeNotificationEmail = async (
         </div>
       </div>
     `,
+    transactional: true,
+    category: "grade",
   };
 
   return sendEmail(mailOptions);
