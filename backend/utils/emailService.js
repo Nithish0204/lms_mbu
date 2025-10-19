@@ -30,6 +30,16 @@ exports.sendOtpEmail = async (user, otp) => {
   return await sendEmail(mailOptions);
 };
 const nodemailer = require("nodemailer");
+let sgMail;
+try {
+  sgMail = require("@sendgrid/mail");
+  if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log("📨 SendGrid initialized");
+  }
+} catch (e) {
+  // SendGrid not installed or not configured
+}
 
 /**
  * Email Service for LMS Platform
@@ -71,6 +81,35 @@ const createTransporter = () => {
  * Send email with error handling
  */
 const sendEmail = async (mailOptions) => {
+  // Prefer SendGrid if configured
+  if (sgMail && process.env.SENDGRID_API_KEY) {
+    try {
+      const msg = {
+        to: mailOptions.to,
+        from: process.env.EMAIL_FROM || "LMS Platform <noreply@lms.com>",
+        subject: mailOptions.subject,
+        html: mailOptions.html,
+        text: mailOptions.text,
+      };
+      const [response] = await sgMail.send(msg);
+      console.log(
+        `✅ SendGrid: Email sent to ${mailOptions.to}:`,
+        response.statusCode
+      );
+      return {
+        success: true,
+        provider: "sendgrid",
+        status: response.statusCode,
+      };
+    } catch (error) {
+      console.error(
+        "❌ SendGrid send error:",
+        error.response?.body || error.message || error
+      );
+      // fall through to SMTP below
+    }
+  }
+
   const transporter = createTransporter();
 
   if (!transporter) {

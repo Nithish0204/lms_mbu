@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../api";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -50,12 +51,9 @@ const Grades = () => {
     const fetchGrades = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(
-          "http://localhost:5001/api/submissions/my-submissions",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get("/submissions/my-submissions", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         // Filter only graded submissions
         const gradedSubmissions =
           response.data.submissions?.filter(

@@ -19,7 +19,7 @@ const log = createLogger("server");
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://lms-mbu-aqux.vercel.app",
+    origin: ["https://lms-mbu-aqux.vercel.app", "http://localhost:3000"],
     credentials: true,
   })
 );
@@ -49,6 +49,8 @@ app.use(cors());
 
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Also expose uploads under /api prefix for serverless routing compatibility
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Mount routers
 const authRoutes = require("./routes/authRoutes");
@@ -78,6 +80,36 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.get("/api/health/email", (req, res) => {
+  const sendgridConfigured = Boolean(process.env.SENDGRID_API_KEY);
+  const smtpConfigured = Boolean(
+    process.env.SMTP_USER && process.env.SMTP_PASS
+  );
+  const strictSmtp =
+    String(process.env.EMAIL_SMTP_STRICT || "false").toLowerCase() === "true";
+  const smtpTimeout = Number(process.env.EMAIL_SMTP_TIMEOUT || 10000);
+  const sgStrict =
+    String(process.env.SENDGRID_VALIDATE_STRICT || "false").toLowerCase() ===
+    "true";
+  res.json({
+    ok: true,
+    providers: {
+      sendgrid: { configured: sendgridConfigured },
+      smtp: {
+        configured: smtpConfigured,
+        timeoutMs: smtpTimeout,
+        strict: strictSmtp,
+      },
+    },
+    validation: {
+      order: [
+        sendgridConfigured ? "sendgrid" : null,
+        "deep-email-validator",
+      ].filter(Boolean),
+      sendgridStrict: sgStrict,
+    },
+  });
+});
 const PORT = process.env.PORT || 5000;
 
 if (require.main === module) {

@@ -253,7 +253,9 @@ const SubmitAssignment = () => {
                   : attachment.path && /^https?:\/\//.test(attachment.path)
                   ? attachment.path
                   : attachment.path
-                  ? `http://localhost:5001/${attachment.path}`
+                  ? attachment.path.startsWith("uploads/")
+                    ? `/api/${attachment.path}`
+                    : `/${attachment.path}`
                   : "#";
                 return (
                   <li key={index}>

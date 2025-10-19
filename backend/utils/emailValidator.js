@@ -1,5 +1,13 @@
 const dns = require("dns").promises;
 const { validate } = require("deep-email-validator");
+let sgClient;
+try {
+  sgClient = require("@sendgrid/client");
+  if (process.env.SENDGRID_API_KEY) {
+    sgClient.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log("🔍 SendGrid Email Validation enabled");
+  }
+} catch (_) {}
 
 /**
  * Email validation utility with real-world verification
@@ -82,6 +90,78 @@ exports.sanitizeEmail = (email) => {
 };
 
 /**
+ * SendGrid Email Validation
+ * Verdicts: Valid | Risky | Invalid | Unknown
+ */
+async function validateWithSendGrid(email) {
+  if (!sgClient || !process.env.SENDGRID_API_KEY) return null;
+  try {
+    const strict =
+      String(process.env.SENDGRID_VALIDATE_STRICT || "false").toLowerCase() ===
+      "true";
+    const req = {
+      method: "POST",
+      url: "/v3/validations/email",
+      body: { email },
+    };
+    const [response, body] = await sgClient.request(req);
+    const result = body?.result || body;
+    const verdict = (
+      result?.verdict ||
+      result?.result?.verdict ||
+      ""
+    ).toString();
+
+    // Decide based on verdict
+    if (verdict.toLowerCase() === "valid") {
+      return {
+        valid: true,
+        reason: "sendgrid",
+        verdict,
+        details: result,
+        usedSendGrid: true,
+      };
+    }
+    if (verdict.toLowerCase() === "risky") {
+      if (strict) {
+        return {
+          valid: false,
+          reason: "sendgrid",
+          verdict,
+          message: "Email flagged as risky by validation",
+          details: result,
+          usedSendGrid: true,
+        };
+      }
+      return {
+        valid: true,
+        reason: "sendgrid",
+        verdict,
+        warning:
+          "Email flagged as risky by validation - proceeding with OTP verification",
+        details: result,
+        usedSendGrid: true,
+      };
+    }
+    // Invalid or Unknown
+    return {
+      valid: false,
+      reason: "sendgrid",
+      verdict,
+      message: "Email validation failed",
+      details: result,
+      usedSendGrid: true,
+    };
+  } catch (error) {
+    console.error(
+      "❌ SendGrid validation error:",
+      error.response?.body || error.message || error
+    );
+    return { error: true, usedSendGrid: true, message: error.message };
+  }
+}
+
+/**
  * Full email validation (format + domain verification)
  */
 exports.validateEmail = async (email) => {
@@ -134,6 +214,26 @@ exports.deepValidateEmail = async (email) => {
   console.log(`\n🔬 Deep validating email: ${email}`);
 
   try {
+    // 1) Try SendGrid validation first if configured
+    const sgResult = await validateWithSendGrid(email);
+    if (sgResult && sgResult.usedSendGrid) {
+      if (sgResult.valid) {
+        return sgResult;
+      }
+      // If SendGrid returned a definitive invalid, stop here
+      if (
+        !sgResult.error &&
+        sgResult.verdict &&
+        sgResult.verdict.toLowerCase() === "invalid"
+      ) {
+        return sgResult;
+      }
+      // Otherwise continue to fallback validator below
+      console.log(
+        "ℹ️ SendGrid validation inconclusive or failed, falling back to SMTP-based validation"
+      );
+    }
+
     const smtpTimeout = parseInt(process.env.EMAIL_SMTP_TIMEOUT || "10000", 10);
     const result = await validate({
       email: email,
