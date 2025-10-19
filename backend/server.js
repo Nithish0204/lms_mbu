@@ -93,6 +93,9 @@ app.get("/api/health/email", (req, res) => {
   const sgStrict =
     String(process.env.SENDGRID_VALIDATE_STRICT || "false").toLowerCase() ===
     "true";
+  const sgValidationEnabled =
+    String(process.env.SENDGRID_VALIDATION_ENABLE || "false").toLowerCase() ===
+    "true";
   res.json({
     ok: true,
     providers: {
@@ -106,10 +109,11 @@ app.get("/api/health/email", (req, res) => {
     },
     validation: {
       order: [
-        sendgridConfigured ? "sendgrid" : null,
+        sendgridConfigured && sgValidationEnabled ? "sendgrid" : null,
         "deep-email-validator",
       ].filter(Boolean),
       sendgridStrict: sgStrict,
+      sendgridValidationEnabled: sgValidationEnabled,
     },
   });
 });

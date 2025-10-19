@@ -94,6 +94,10 @@ exports.sanitizeEmail = (email) => {
  * Verdicts: Valid | Risky | Invalid | Unknown
  */
 async function validateWithSendGrid(email) {
+  const validationEnabled =
+    String(process.env.SENDGRID_VALIDATION_ENABLE || "false").toLowerCase() ===
+    "true";
+  if (!validationEnabled) return null;
   if (!sgClient || !process.env.SENDGRID_API_KEY) return null;
   try {
     const strict =

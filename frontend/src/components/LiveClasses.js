@@ -27,6 +27,17 @@ const LiveClasses = () => {
     onConfirm: null,
   });
 
+  // Helper: Format date for datetime-local input (YYYY-MM-DDTHH:MM)
+  const formatDateTimeLocal = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -71,7 +82,14 @@ const LiveClasses = () => {
     setSubmitting(true);
 
     try {
-      await liveClassAPI.createLiveClass(formData);
+      // Convert datetime-local to ISO string preserving local timezone
+      const scheduledDate = new Date(formData.scheduledAt);
+      const dataToSend = {
+        ...formData,
+        scheduledAt: scheduledDate.toISOString(),
+      };
+
+      await liveClassAPI.createLiveClass(dataToSend);
       setShowScheduleModal(false);
       setFormData({
         courseId: "",

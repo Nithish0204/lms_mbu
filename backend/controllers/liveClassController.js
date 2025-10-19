@@ -83,7 +83,15 @@ exports.createLiveClass = async (req, res) => {
 
     // Validate scheduled time is in the future
     const scheduledDate = new Date(scheduledAt);
-    if (scheduledDate <= new Date()) {
+    const now = new Date();
+
+    console.log("📅 Scheduled time validation:");
+    console.log("  Received:", scheduledAt);
+    console.log("  Parsed as:", scheduledDate.toISOString());
+    console.log("  Current time:", now.toISOString());
+    console.log("  Is in future?", scheduledDate > now);
+
+    if (scheduledDate <= now) {
       return res.status(400).json({
         success: false,
         error: "Scheduled time must be in the future",
