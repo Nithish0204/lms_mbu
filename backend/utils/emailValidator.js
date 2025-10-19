@@ -235,6 +235,8 @@ exports.deepValidateEmail = async (email) => {
     }
 
     const smtpTimeout = parseInt(process.env.EMAIL_SMTP_TIMEOUT || "10000", 10);
+    const smtpEnabled =
+      String(process.env.EMAIL_SMTP_ENABLE || "true").toLowerCase() === "true";
     const result = await validate({
       email: email,
       sender: process.env.SMTP_USER || "noreply@lmsplatform.com",
@@ -242,7 +244,7 @@ exports.deepValidateEmail = async (email) => {
       validateMx: true,
       validateTypo: true,
       validateDisposable: true,
-      validateSMTP: true, // ✅ ENABLED - Checks if email actually exists on server
+      validateSMTP: smtpEnabled, // ✅ Controls SMTP check (disable on hosts that block port 25)
       timeout: Number.isFinite(smtpTimeout) ? smtpTimeout : 10000, // Configurable timeout
     });
 
@@ -281,17 +283,25 @@ exports.deepValidateEmail = async (email) => {
           smtpReason.includes("timed out") ||
           smtpReason.includes("connection") ||
           smtpReason.includes("refused") ||
+          smtpReason.includes("blocked") ||
           smtpReason.includes("block") ||
           smtpReason.includes("grey") ||
           smtpReason.includes("anti") ||
           smtpReason.includes("starttls") ||
-          smtpReason.includes("tls");
+          smtpReason.includes("tls") ||
+          smtpReason.includes("aggregate") || // deep-email-validator often wraps multiple errors
+          smtpReason.includes("econn") || // ECONNRESET/ECONNREFUSED
+          smtpReason.includes("enotfound") ||
+          smtpReason.includes("eai_again") ||
+          smtpReason.includes("certificate") ||
+          smtpReason.includes("self signed") ||
+          smtpReason.includes("dns");
 
         const strictMode =
           String(process.env.EMAIL_SMTP_STRICT || "false").toLowerCase() ===
           "true";
 
-        if (isTimeoutOrBlocked && !strictMode) {
+        if ((!smtpEnabled || isTimeoutOrBlocked) && !strictMode) {
           // Treat as inconclusive: allow registration but require OTP to verify real ownership
           const hasValidFormat = result.validators?.regex?.valid !== false;
           const hasValidMx = result.validators?.mx?.valid !== false;

@@ -85,6 +85,8 @@ app.get("/api/health/email", (req, res) => {
   const smtpConfigured = Boolean(
     process.env.SMTP_USER && process.env.SMTP_PASS
   );
+  const smtpEnabled =
+    String(process.env.EMAIL_SMTP_ENABLE || "true").toLowerCase() === "true";
   const strictSmtp =
     String(process.env.EMAIL_SMTP_STRICT || "false").toLowerCase() === "true";
   const smtpTimeout = Number(process.env.EMAIL_SMTP_TIMEOUT || 10000);
@@ -97,6 +99,7 @@ app.get("/api/health/email", (req, res) => {
       sendgrid: { configured: sendgridConfigured },
       smtp: {
         configured: smtpConfigured,
+        enabled: smtpEnabled,
         timeoutMs: smtpTimeout,
         strict: strictSmtp,
       },
