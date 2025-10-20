@@ -518,6 +518,11 @@ const Register = () => {
                 <p className="text-base sm:text-lg font-semibold text-secondary-600 mb-6 sm:mb-8">
                   {registeredEmail}
                 </p>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
+                  If you don't see the OTP in your inbox, please check your
+                  spam/junk or promotions folder — emails may land in your Inbox
+                  or Spam.
+                </p>
               </div>
 
               {otpError && (
