@@ -21,6 +21,7 @@ const {
 } = require("../utils/emailService");
 const { createLogger } = require("../utils/logger");
 const log = createLogger("assignmentController");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 let storage;
 const hasCloudinaryConfig =
@@ -204,6 +205,113 @@ exports.getAssignments = async (req, res) => {
       requestId: req.id,
       error: error.message,
     });
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Generate a mock quiz using Gemini 2.5 Pro
+// No persistence; returns 10 MCQs and answer key based on course/assignment context
+exports.generateMockQuiz = async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.id)
+      .select("title description course")
+      .populate("course", "title")
+      .lean();
+    if (!assignment) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Assignment not found" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      return res
+        .status(500)
+        .json({ success: false, error: "Gemini API key not configured" });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+
+    // Structured prompt to ensure consistent JSON output
+    const systemPrompt = `You are an assistant that generates concise multiple-choice quizzes.
+Return STRICT JSON matching this schema:
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "",
+      "options": ["A", "B", "C", "D"],
+      "answer": "A", // must be exactly one of options
+      "explanation": "" // brief reasoning (1-2 lines)
+    }
+  ]
+}
+Rules:
+- Exactly 10 questions.
+- Each with 4 options (A-D) of similar length.
+- Keep questions specific to the provided course and assignment.
+- Keep explanations short and helpful.
+- Do not include any text outside JSON.`;
+
+    const userContext = {
+      courseTitle: assignment.course?.title || "",
+      assignmentTitle: assignment.title,
+      assignmentDescription: assignment.description || "",
+    };
+
+    const content = [
+      { role: "user", parts: [{ text: systemPrompt }] },
+      {
+        role: "user",
+        parts: [
+          {
+            text: `Generate a mock quiz for this context:\n${JSON.stringify(
+              userContext,
+              null,
+              2
+            )}`,
+          },
+        ],
+      },
+    ];
+
+    const response = await model.generateContent({ contents: content });
+    const text =
+      response.response?.text?.() ||
+      response.response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "";
+
+    // Attempt to parse JSON from model output
+    let quiz;
+    try {
+      const jsonStr = text.trim().replace(/^```json\n?|```$/g, "");
+      quiz = JSON.parse(jsonStr);
+    } catch (e) {
+      log.warn("gemini:quiz:parse:error", {
+        error: e.message,
+        raw: text.slice(0, 200),
+      });
+      return res
+        .status(502)
+        .json({ success: false, error: "Failed to parse quiz from Gemini" });
+    }
+
+    // Basic validation
+    if (
+      !quiz ||
+      !Array.isArray(quiz.questions) ||
+      quiz.questions.length !== 10
+    ) {
+      return res
+        .status(502)
+        .json({ success: false, error: "Quiz format invalid" });
+    }
+
+    // Do NOT store anything; just return
+    res.json({ success: true, quiz });
+  } catch (error) {
+    log.error("gemini:quiz:error", { error: error.message });
     res.status(500).json({ success: false, error: error.message });
   }
 };

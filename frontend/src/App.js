@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -23,43 +23,84 @@ import ViewSubmissions from "./components/ViewSubmissions";
 import CreateAssignment from "./components/CreateAssignment";
 import CourseDetail from "./components/CourseDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MockQuizModal from "./components/MockQuizModal";
 
 function Navbar() {
+  const [menuOpen, setMenuOpen] = React.useState(false);
   return (
     <nav className="bg-white/80 backdrop-blur-lg shadow-lg w-full sticky top-0 z-50 border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between h-auto md:h-20 items-center md:items-stretch">
-          <div className="flex items-center py-3 md:py-0 w-full md:w-auto justify-center md:justify-start">
-            <Link to="/" className="flex items-center space-x-3 group">
-              <div className="h-12 w-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-glow transition-all duration-300 group-hover:scale-110">
-                <span className="text-white font-bold text-2xl">H</span>
-              </div>
-              <span className="text-2xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600">
-                Hubexus LMS
-              </span>
-            </Link>
-          </div>
-          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto justify-center md:justify-end py-2 md:py-0">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div className="flex items-center justify-between h-14 md:h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="h-10 w-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-glow transition-all duration-300 group-hover:scale-110">
+              <span className="text-white font-bold text-xl">H</span>
+            </div>
+            <span className="text-xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-600">
+              Hubexus LMS
+            </span>
+          </Link>
+          {/* Hamburger for mobile */}
+          <button
+            className="md:hidden flex items-center justify-center p-2 rounded-lg focus:outline-none"
+            aria-label="Open menu"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span className="sr-only">Open menu</span>
+            <div className="flex flex-col gap-1">
+              <span className="block w-6 h-0.5 bg-gray-700 rounded"></span>
+              <span className="block w-6 h-0.5 bg-gray-700 rounded"></span>
+              <span className="block w-6 h-0.5 bg-gray-700 rounded"></span>
+            </div>
+          </button>
+          {/* Nav links */}
+          <div className="hidden md:flex items-center space-x-2">
             <Link
               to="/"
-              className="text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-xl text-base font-semibold transition-all duration-200 w-full md:w-auto text-center"
+              className="text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-3 py-1.5 rounded-lg text-base font-semibold transition-all duration-200"
             >
               Home
             </Link>
             <Link
               to="/login"
-              className="text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-xl text-base font-semibold transition-all duration-200 w-full md:w-auto text-center"
+              className="text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-3 py-1.5 rounded-lg text-base font-semibold transition-all duration-200"
             >
               Sign In
             </Link>
             <Link
               to="/register"
-              className="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-6 py-2.5 rounded-xl text-base font-bold transition-all duration-200 shadow-lg hover:shadow-glow hover:scale-105 w-full md:w-auto text-center"
+              className="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-4 py-1.5 rounded-lg text-base font-bold transition-all duration-200 shadow-lg hover:shadow-glow hover:scale-105"
             >
               Get Started Free
             </Link>
           </div>
         </div>
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="md:hidden flex flex-col items-center gap-2 py-2 bg-white/95 border-t border-gray-200">
+            <Link
+              to="/"
+              className="w-full text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg text-base font-semibold transition-all duration-200 text-center"
+              onClick={() => setMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              to="/login"
+              className="w-full text-gray-700 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg text-base font-semibold transition-all duration-200 text-center"
+              onClick={() => setMenuOpen(false)}
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-4 py-2 rounded-lg text-base font-bold transition-all duration-200 shadow-lg hover:shadow-glow hover:scale-105 text-center"
+              onClick={() => setMenuOpen(false)}
+            >
+              Get Started Free
+            </Link>
+          </div>
+        )}
       </div>
     </nav>
   );
@@ -78,7 +119,6 @@ function HomePage() {
               <span className="animate-pulse mr-2">🚀</span>
               Next-Gen Learning Platform
             </div>
-
             {/* Main Heading */}
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-display font-extrabold mb-6 leading-tight">
               <span className="block text-gray-900">Transform Learning</span>
@@ -86,7 +126,6 @@ function HomePage() {
                 Empower Success
               </span>
             </h1>
-
             {/* Subtitle */}
             <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-10 max-w-3xl mx-auto font-medium leading-relaxed">
               The all-in-one Learning Management System that brings students and
@@ -95,9 +134,8 @@ function HomePage() {
                 Create. Collaborate. Excel.
               </span>
             </p>
-
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-12">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mb-6">
               <Link
                 to="/register"
                 className="group relative bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-10 py-4 rounded-2xl text-lg font-bold transition-all duration-300 shadow-lg hover:shadow-glow-lg hover:scale-105 w-full sm:w-auto text-center overflow-hidden"
@@ -112,51 +150,50 @@ function HomePage() {
                 Sign In →
               </Link>
             </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 text-success-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>100% Free</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 text-success-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>No Credit Card</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 text-success-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Instant Access</span>
-              </div>
+          </div>
+          {/* Trust Indicators */}
+          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 text-success-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>100% Free</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 text-success-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>No Credit Card</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 text-success-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Instant Access</span>
             </div>
           </div>
         </div>
@@ -436,12 +473,12 @@ function HomePage() {
             </div>
           </div>
 
-          {/* Feature 6: Enrollment System */}
+          {/* Feature 6: Mock Quiz (AI) */}
           <div
-            className="group bg-white rounded-3xl shadow-lg hover:shadow-glow transition-all duration-300 p-8 border border-gray-100 hover:border-primary-300 hover:-translate-y-2 animate-fade-in-up"
+            className="group bg-white rounded-3xl shadow-lg hover:shadow-glow transition-all duration-300 p-8 border border-gray-100 hover:border-accent-300 hover:-translate-y-2 animate-fade-in-up"
             style={{ animationDelay: "0.5s" }}
           >
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-accent-400 to-primary-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -452,19 +489,19 @@ function HomePage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                 />
               </svg>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              Easy Enrollment
+              Mock Quiz (AI)
             </h3>
             <p className="text-gray-600 leading-relaxed mb-4">
-              Browse and enroll in courses instantly. Teachers get notified
-              immediately, and students receive confirmation emails
-              automatically.
+              Try AI-powered quizzes for instant practice and feedback. Generate
+              custom questions, test your knowledge, and see your score
+              instantly
             </p>
-            <div className="flex items-center text-primary-600 font-semibold group-hover:gap-2 transition-all">
+            <div className="flex items-center text-accent-600 font-semibold group-hover:gap-2 transition-all">
               <span>Learn more</span>
               <svg
                 className="w-5 h-5 group-hover:translate-x-1 transition-transform"

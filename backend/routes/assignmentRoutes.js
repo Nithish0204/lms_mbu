@@ -12,6 +12,13 @@ router.post(
 );
 router.get("/", protect, assignmentController.getAssignments);
 router.get("/my-assignments", protect, assignmentController.getMyAssignments);
+// Mock quiz generation (Student-accessible; no storage)
+router.post(
+  "/:id/mock-quiz",
+  protect,
+  authorize("Student"),
+  assignmentController.generateMockQuiz
+);
 router.get(
   "/course/:courseId",
   protect,

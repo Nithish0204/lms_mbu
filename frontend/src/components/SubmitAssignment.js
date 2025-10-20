@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { assignmentAPI, submissionAPI, API_URL } from "../api";
+import MockQuizModal from "./MockQuizModal";
 
 const SubmitAssignment = () => {
   const { assignmentId } = useParams();
@@ -14,6 +15,7 @@ const SubmitAssignment = () => {
   const [success, setSuccess] = useState("");
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [showMockQuiz, setShowMockQuiz] = useState(false);
 
   useEffect(() => {
     fetchAssignment();
@@ -528,6 +530,24 @@ const SubmitAssignment = () => {
                 </div>
               </div>
             )}
+
+            {/* Mock Quiz (no storage) */}
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => setShowMockQuiz(true)}
+                className="btn-primary"
+              >
+                Take Mock Quiz (AI)
+              </button>
+              {showMockQuiz && (
+                <MockQuizModal
+                  assignment={assignment}
+                  assignmentId={assignment._id}
+                  onClose={() => setShowMockQuiz(false)}
+                />
+              )}
+            </div>
 
             {/* Alert Messages */}
             {error && (
