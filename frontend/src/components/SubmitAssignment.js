@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { assignmentAPI, submissionAPI } from "../api";
+import { assignmentAPI, submissionAPI, API_URL } from "../api";
 
 const SubmitAssignment = () => {
   const { assignmentId } = useParams();
@@ -476,15 +476,26 @@ const SubmitAssignment = () => {
                 </div>
                 <div className="space-y-2">
                   {assignment.attachments.map((attachment, index) => {
-                    const href = attachment.url
-                      ? attachment.url
-                      : attachment.path && /^https?:\/\//.test(attachment.path)
-                      ? attachment.path
-                      : attachment.path
-                      ? attachment.path.startsWith("uploads/")
-                        ? `/api/${attachment.path}`
-                        : `/${attachment.path}`
-                      : "#";
+                    // Build a safe href: prefer attachment.url (cloud), otherwise use path.
+                    // If the path is a local uploads/* path, prefix with the API base so it points to backend static route.
+                    const href = (() => {
+                      if (attachment.url) return attachment.url;
+                      if (
+                        attachment.path &&
+                        /^https?:\/\//.test(attachment.path)
+                      )
+                        return attachment.path;
+                      if (attachment.path) {
+                        const p = attachment.path;
+                        if (p.startsWith("uploads/")) {
+                          // Ensure API_URL doesn't end with a slash
+                          const base = API_URL.replace(/\/$/, "");
+                          return `${base}/${p}`;
+                        }
+                        return `/${p}`;
+                      }
+                      return "#";
+                    })();
                     return (
                       <a
                         key={index}

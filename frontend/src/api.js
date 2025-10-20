@@ -147,3 +147,4 @@ export const assessmentAPI = {
 };
 
 export default api;
+export { API_URL };

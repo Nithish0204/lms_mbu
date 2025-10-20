@@ -7,10 +7,15 @@ const path = require("path");
 const fs = require("fs");
 
 let CloudinaryStorage, cloudinary;
+// Capture require-time errors so we can log why Cloudinary isn't available
+let requireCloudError = null;
 try {
   ({ CloudinaryStorage } = require("multer-storage-cloudinary"));
   ({ v2: cloudinary } = require("cloudinary"));
-} catch (e) {}
+} catch (e) {
+  // store the error and continue — controller will fallback to local storage
+  requireCloudError = e;
+}
 const {
   sendAssignmentNotificationToStudents,
 } = require("../utils/emailService");
@@ -57,7 +62,11 @@ if (hasCloudinaryConfig) {
       );
     },
   });
-  log.info("storage:local:enabled", { scope: "assignments" });
+  // Include a helpful reason in logs so deploy logs surface the root cause
+  const reason = requireCloudError
+    ? `require_error: ${requireCloudError.message}`
+    : "missing CLOUDINARY_* env variables or Cloudinary packages not installed";
+  log.info("storage:local:enabled", { scope: "assignments", reason });
 }
 
 const upload = multer({
