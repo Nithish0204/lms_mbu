@@ -683,27 +683,27 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/30">
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full md:w-auto">
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 w-full">
+          <div className="flex justify-between items-center gap-2 sm:gap-4 w-full">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
               {/* User Avatar */}
-              <div className="h-14 w-14 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mb-2 sm:mb-0">
-                <span className="text-white font-bold text-xl">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 bg-gradient-to-br from-secondary-500 via-secondary-600 to-primary-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-md sm:shadow-lg shadow-secondary-500/30 animate-scale-in">
+                <span className="text-white font-bold text-base sm:text-xl lg:text-2xl">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
               {/* User Info */}
-              <div className="text-center sm:text-left">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {user.name}
+              <div className="hidden lg:block">
+                <h1 className="text-base sm:text-xl lg:text-2xl font-display font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Hello, {user.name.split(" ")[0]}! 📚
                 </h1>
-                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-sm text-gray-600 mt-1">
-                  <span className="flex items-center">
+                <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                  <span className="flex items-center bg-secondary-50 px-2 py-0.5 sm:py-1 rounded-lg">
                     <svg
-                      className="h-4 w-4 mr-1"
+                      className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-secondary-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -715,9 +715,11 @@ const TeacherDashboard = () => {
                         d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                       />
                     </svg>
-                    Teacher
+                    <span className="font-semibold text-secondary-700">
+                      Teacher
+                    </span>
                   </span>
-                  <span className="flex items-center">
+                  <span className="hidden xl:flex items-center text-gray-500">
                     <svg
                       className="h-4 w-4 mr-1"
                       fill="none"
@@ -737,14 +739,14 @@ const TeacherDashboard = () => {
               </div>
             </div>
             {/* Right side - Navigation & Logout */}
-            <div className="md:hidden w-full flex justify-end mb-2">
+            <div className="lg:hidden">
               <button
-                className="p-2 rounded-lg border border-gray-300 focus:outline-none"
+                className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-secondary-500 transition-all"
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-label="Toggle menu"
               >
                 <svg
-                  className="h-6 w-6 text-gray-700"
+                  className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -759,28 +761,30 @@ const TeacherDashboard = () => {
               </button>
             </div>
             <div
-              className={`flex flex-wrap gap-2 sm:gap-4 items-center justify-center sm:justify-end w-full md:w-auto mt-4 md:mt-0 ${
-                menuOpen ? "" : "hidden md:flex"
-              }`}
+              className={`${
+                menuOpen
+                  ? "absolute top-full left-0 right-0 bg-white/95 backdrop-blur-lg shadow-lg border-t border-gray-200 p-4"
+                  : "hidden"
+              } lg:flex lg:relative lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:border-none lg:p-0 flex-col lg:flex-row gap-1.5 sm:gap-2 items-stretch lg:items-center`}
             >
               <Link
                 to="/teacher-dashboard"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full sm:w-auto text-center"
+                className="text-secondary-600 bg-secondary-50 hover:bg-secondary-100 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-center"
               >
                 Dashboard
               </Link>
               <Link
                 to="/my-courses"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full sm:w-auto text-center"
+                className="text-gray-700 hover:text-secondary-600 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 text-center"
               >
                 My Courses
               </Link>
               <Link
                 to="/live-classes"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center w-full sm:w-auto text-center"
+                className="text-gray-700 hover:text-secondary-600 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center"
               >
                 <svg
-                  className="h-5 w-5 mr-1"
+                  className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-1.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -792,14 +796,15 @@ const TeacherDashboard = () => {
                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                   />
                 </svg>
-                Live Classes
+                <span className="hidden sm:inline">Live Classes</span>
+                <span className="sm:hidden">Live</span>
               </Link>
               <Link
                 to="/profile"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center w-full sm:w-auto text-center"
+                className="text-gray-700 hover:text-secondary-600 hover:bg-gray-50 px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center"
               >
                 <svg
-                  className="h-5 w-5 mr-1"
+                  className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-1.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -815,10 +820,10 @@ const TeacherDashboard = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-150 flex items-center w-full sm:w-auto text-center"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 sm:px-5 py-2 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center font-medium text-xs sm:text-sm shadow-md sm:shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
               >
                 <svg
-                  className="h-5 w-5 mr-1"
+                  className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-1.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -839,22 +844,72 @@ const TeacherDashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {/* Total Courses Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Total Courses
-                </p>
-                <p className="text-3xl font-bold text-primary-600 mt-2">
-                  {courses.length}
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center">
+        {/* Welcome Banner */}
+        <div className="bg-gradient-to-r from-secondary-600 via-secondary-700 to-primary-600 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white animate-fade-in-up overflow-hidden relative">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 sm:w-40 sm:h-40 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <h2 className="text-lg sm:text-2xl lg:text-3xl font-display font-bold mb-1 sm:mb-2">
+              Manage Your Teaching Excellence
+            </h2>
+            <p className="text-secondary-100 text-sm sm:text-base lg:text-lg mb-4 sm:mb-6">
+              Create engaging courses, track student progress, and inspire
+              learning
+            </p>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4">
+              <Link
+                to="/create-course"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white text-secondary-700 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+              >
                 <svg
-                  className="h-6 w-6 text-primary-600"
+                  className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Create New Course
+              </Link>
+              <Link
+                to="/create-assignment"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold hover:bg-white/30 transition-all duration-200 border-2 border-white/30"
+              >
+                New Assignment
+                <svg
+                  className="h-4 w-4 sm:h-5 sm:w-5 ml-1.5 sm:ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
+          {/* Total Courses Card */}
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md sm:shadow-lg shadow-primary-500/30">
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -868,22 +923,46 @@ const TeacherDashboard = () => {
                 </svg>
               </div>
             </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">
+              <span className="hidden sm:inline">My Courses</span>
+              <span className="sm:hidden">Courses</span>
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {courses.length}
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-primary-600 font-medium">
+              <Link
+                to="/my-courses"
+                className="hover:text-primary-700 flex items-center"
+              >
+                <span className="hidden sm:inline">Manage courses</span>
+                <span className="sm:hidden">Manage</span>
+                <svg
+                  className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
           </div>
 
           {/* Total Students Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Total Students
-                </p>
-                <p className="text-3xl font-bold text-secondary-600 mt-2">
-                  {Object.values(enrollmentCounts).reduce((a, b) => a + b, 0)}
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md sm:shadow-lg shadow-secondary-500/30">
                 <svg
-                  className="h-6 w-6 text-secondary-600"
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -897,22 +976,30 @@ const TeacherDashboard = () => {
                 </svg>
               </div>
             </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">
+              <span className="hidden sm:inline">Total Students</span>
+              <span className="sm:hidden">Students</span>
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {Object.values(enrollmentCounts).reduce((a, b) => a + b, 0)}
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-secondary-600 font-medium">
+              <span className="flex items-center">
+                <span className="hidden sm:inline">Across all courses</span>
+                <span className="sm:hidden">All courses</span>
+              </span>
+            </div>
           </div>
 
           {/* Assignments Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Active Assignments
-                </p>
-                <p className="text-3xl font-bold text-green-600 mt-2">
-                  {assignments.filter((a) => a.status === "published").length}
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.3s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-success-500 to-success-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md sm:shadow-lg shadow-success-500/30">
                 <svg
-                  className="h-6 w-6 text-green-600"
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -926,22 +1013,46 @@ const TeacherDashboard = () => {
                 </svg>
               </div>
             </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">
+              <span className="hidden sm:inline">Active Assignments</span>
+              <span className="sm:hidden">Active</span>
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {assignments.filter((a) => a.status === "published").length}
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-success-600 font-medium">
+              <Link
+                to="/create-assignment"
+                className="hover:text-success-700 flex items-center"
+              >
+                <span className="hidden sm:inline">Create new</span>
+                <span className="sm:hidden">Create</span>
+                <svg
+                  className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
           </div>
 
           {/* Pending Reviews Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Submissions to Grade
-                </p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">
-                  {submissionStats.ungraded || 0}
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-lg sm:hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.4s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-warning-500 to-warning-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md sm:shadow-lg shadow-warning-500/30">
                 <svg
-                  className="h-6 w-6 text-purple-600"
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -954,6 +1065,18 @@ const TeacherDashboard = () => {
                   />
                 </svg>
               </div>
+            </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-0.5 sm:mb-1">
+              To Grade
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {submissionStats.ungraded || 0}
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-warning-600 font-medium">
+              <span className="flex items-center">
+                <span className="hidden sm:inline">Needs your review</span>
+                <span className="sm:hidden">Needs review</span>
+              </span>
             </div>
           </div>
         </div>

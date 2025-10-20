@@ -6,26 +6,212 @@
   body {
     @apply m-0 font-sans antialiased bg-gray-50;
   }
+
+  /* Improved touch targets for mobile */
+  button,
+  a,
+  [role="button"] {
+    @apply touch-manipulation;
+  }
 }
 
 @layer components {
+  /* Responsive Button Styles */
   .btn-primary {
-    @apply bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 
+           text-white font-semibold 
+           py-2 px-3 sm:py-2.5 sm:px-4 lg:py-3 lg:px-6 
+           text-sm sm:text-base
+           rounded-lg sm:rounded-xl 
+           transition-all duration-200 
+           shadow-md hover:shadow-lg 
+           hover:scale-105 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
   }
 
   .btn-secondary {
-    @apply bg-secondary-500 hover:bg-secondary-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-gradient-to-r from-secondary-500 to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 
+           text-white font-semibold 
+           py-2 px-3 sm:py-2.5 sm:px-4 lg:py-3 lg:px-6 
+           text-sm sm:text-base
+           rounded-lg sm:rounded-xl 
+           transition-all duration-200 
+           shadow-md hover:shadow-lg 
+           hover:scale-105 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-outline {
-    @apply border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply border-2 border-primary-500 text-primary-500 
+           hover:bg-primary-500 hover:text-white 
+           font-semibold 
+           py-2 px-3 sm:py-2.5 sm:px-4 lg:py-3 lg:px-6 
+           text-sm sm:text-base
+           rounded-lg sm:rounded-xl 
+           transition-all duration-200
+           hover:scale-105 active:scale-95;
   }
 
+  .btn-danger {
+    @apply bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 
+           text-white font-semibold 
+           py-2 px-3 sm:py-2.5 sm:px-4 lg:py-3 lg:px-6 
+           text-sm sm:text-base
+           rounded-lg sm:rounded-xl 
+           transition-all duration-200 
+           shadow-md hover:shadow-lg 
+           hover:scale-105 active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply text-gray-700 hover:bg-gray-100 
+           font-medium 
+           py-1.5 px-2 sm:py-2 sm:px-3 lg:py-2.5 lg:px-4 
+           text-xs sm:text-sm
+           rounded-lg 
+           transition-all duration-200;
+  }
+
+  /* Responsive Input Fields */
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all;
+    @apply w-full 
+           px-3 py-2 sm:px-4 sm:py-2.5 lg:px-4 lg:py-3 
+           text-sm sm:text-base
+           border-2 border-gray-300 
+           rounded-lg sm:rounded-xl 
+           focus:ring-2 focus:ring-primary-500 focus:border-primary-500 
+           outline-none 
+           transition-all duration-200
+           disabled:bg-gray-100 disabled:cursor-not-allowed;
   }
 
+  .input-field-sm {
+    @apply w-full 
+           px-2 py-1.5 sm:px-3 sm:py-2 
+           text-xs sm:text-sm
+           border-2 border-gray-300 
+           rounded-lg 
+           focus:ring-2 focus:ring-primary-500 focus:border-primary-500 
+           outline-none 
+           transition-all;
+  }
+
+  /* Responsive Card Styles */
   .card {
-    @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200;
+    @apply bg-white 
+           rounded-xl sm:rounded-2xl 
+           shadow-md hover:shadow-xl 
+           transition-all duration-300 
+           border border-gray-100
+           p-4 sm:p-5 lg:p-6;
+  }
+
+  .card-compact {
+    @apply bg-white 
+           rounded-lg sm:rounded-xl 
+           shadow-md hover:shadow-lg 
+           transition-all duration-200 
+           border border-gray-100
+           p-3 sm:p-4;
+  }
+
+  .card-interactive {
+    @apply card hover:-translate-y-1 cursor-pointer;
+  }
+
+  /* Responsive Headers */
+  .page-header {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl 
+           font-display font-bold 
+           text-gray-900 
+           mb-3 sm:mb-4 lg:mb-6;
+  }
+
+  .section-header {
+    @apply text-lg sm:text-xl lg:text-2xl 
+           font-display font-bold 
+           text-gray-900 
+           mb-2 sm:mb-3 lg:mb-4;
+  }
+
+  .subsection-header {
+    @apply text-base sm:text-lg lg:text-xl 
+           font-display font-semibold 
+           text-gray-800 
+           mb-2 sm:mb-3;
+  }
+
+  /* Responsive Spacing */
+  .container-responsive {
+    @apply max-w-7xl mx-auto 
+           px-3 sm:px-4 lg:px-8 
+           py-4 sm:py-6 lg:py-8;
+  }
+
+  .section-spacing {
+    @apply mb-4 sm:mb-6 lg:mb-8;
+  }
+
+  .element-spacing {
+    @apply mb-2 sm:mb-3 lg:mb-4;
+  }
+
+  /* Responsive Grid Layouts */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  /* Loading States */
+  .loading-spinner {
+    @apply animate-spin rounded-full 
+           h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 
+           border-b-2 sm:border-b-4 border-primary-500;
+  }
+
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center 
+           px-2 py-0.5 sm:px-2.5 sm:py-1 
+           text-xs sm:text-sm 
+           font-semibold 
+           rounded-md sm:rounded-lg 
+           transition-colors;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-700;
+  }
+
+  .badge-success {
+    @apply badge bg-success-100 text-success-700;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning-100 text-warning-700;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-100 text-red-700;
+  }
+
+  /* Responsive Icon Sizes */
+  .icon-sm {
+    @apply h-4 w-4 sm:h-5 sm:w-5;
+  }
+
+  .icon-md {
+    @apply h-5 w-5 sm:h-6 sm:w-6;
+  }
+
+  .icon-lg {
+    @apply h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8;
   }
 }

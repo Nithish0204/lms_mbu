@@ -140,27 +140,27 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full md:w-auto">
-              {/* User Avatar */}
-              <div className="h-14 w-14 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mb-2 sm:mb-0">
-                <span className="text-white font-bold text-xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+      {/* Header - Compact & Responsive */}
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-2 sm:py-3">
+          <div className="flex justify-between items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              {/* User Avatar - Smaller on mobile */}
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30 flex-shrink-0">
+                <span className="text-white font-bold text-base sm:text-xl">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
-              {/* User Info */}
-              <div className="text-center sm:text-left">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {user.name}
+              {/* User Info - Truncated on mobile */}
+              <div className="min-w-0 flex-1">
+                <h1 className="text-base sm:text-xl lg:text-2xl font-display font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent truncate">
+                  Welcome, {user.name.split(" ")[0]}! 👋
                 </h1>
-                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-sm text-gray-600 mt-1">
-                  <span className="flex items-center">
+                <div className="hidden sm:flex items-center gap-2 text-xs sm:text-sm text-gray-600 mt-0.5">
+                  <span className="flex items-center bg-primary-50 px-2 py-0.5 rounded-lg">
                     <svg
-                      className="h-4 w-4 mr-1"
+                      className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-primary-600"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -172,11 +172,13 @@ const StudentDashboard = () => {
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
-                    Student
+                    <span className="font-semibold text-primary-700">
+                      Student
+                    </span>
                   </span>
-                  <span className="flex items-center">
+                  <span className="hidden lg:flex items-center text-gray-500 truncate max-w-xs">
                     <svg
-                      className="h-4 w-4 mr-1"
+                      className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -188,20 +190,20 @@ const StudentDashboard = () => {
                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                       />
                     </svg>
-                    {user.email}
+                    <span className="truncate">{user.email}</span>
                   </span>
                 </div>
               </div>
             </div>
             {/* Right side - Navigation & Logout */}
-            <div className="md:hidden w-full flex justify-end mb-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <button
-                className="p-2 rounded-lg border border-gray-300 focus:outline-none"
+                className="lg:hidden p-1.5 sm:p-2 rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-label="Toggle menu"
               >
                 <svg
-                  className="h-6 w-6 text-gray-700"
+                  className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -214,104 +216,154 @@ const StudentDashboard = () => {
                   />
                 </svg>
               </button>
-            </div>
-            <div
-              className={`flex flex-wrap gap-2 sm:gap-4 items-center justify-center sm:justify-end w-full md:w-auto mt-4 md:mt-0 ${
-                menuOpen ? "" : "hidden md:flex"
-              }`}
-            >
-              <Link
-                to="/student-dashboard"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full sm:w-auto text-center"
+              <div
+                className={`${
+                  menuOpen ? "flex" : "hidden"
+                } lg:flex flex-col lg:flex-row absolute lg:relative top-full left-0 right-0 lg:top-auto bg-white lg:bg-transparent shadow-lg lg:shadow-none border-b lg:border-0 gap-1 p-2 lg:p-0 lg:gap-2 z-50`}
               >
-                Dashboard
-              </Link>
-              <Link
-                to="/my-courses"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 w-full sm:w-auto text-center"
-              >
-                My Courses
-              </Link>
-              <Link
-                to="/live-classes"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center w-full sm:w-auto text-center"
-              >
-                <svg
-                  className="h-5 w-5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <Link
+                  to="/student-dashboard"
+                  className="text-primary-600 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 text-center whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                Live Classes
-              </Link>
-              <Link
-                to="/profile"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition duration-150 flex items-center w-full sm:w-auto text-center"
-              >
-                <svg
-                  className="h-5 w-5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  Dashboard
+                </Link>
+                <Link
+                  to="/my-courses"
+                  className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 text-center whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Profile
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-150 flex items-center w-full sm:w-auto text-center"
-              >
-                <svg
-                  className="h-5 w-5 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  My Courses
+                </Link>
+                <Link
+                  to="/live-classes"
+                  className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
-                Logout
-              </button>
+                  <svg
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">Live Classes</span>
+                  <span className="sm:hidden">Classes</span>
+                </Link>
+                <Link
+                  to="/profile"
+                  className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center justify-center whitespace-nowrap"
+                >
+                  <svg
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-1.5 rounded-lg transition-all duration-200 flex items-center justify-center font-medium shadow-md hover:shadow-lg hover:scale-105 active:scale-95 text-xs sm:text-sm whitespace-nowrap"
+                >
+                  <svg
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Enrolled Courses Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Enrolled Courses
-                </p>
-                <p className="text-3xl font-bold text-primary-600 mt-2">
-                  {enrolledCourses.length}
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
+        {/* Welcome Banner - Compact & Responsive */}
+        <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-secondary-600 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 text-white animate-fade-in-up overflow-hidden relative">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 sm:w-40 sm:h-40 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-20 h-20 sm:w-32 sm:h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <h2 className="text-lg sm:text-2xl lg:text-3xl font-display font-bold mb-1 sm:mb-2">
+              Ready to continue learning?
+            </h2>
+            <p className="text-primary-100 text-sm sm:text-base lg:text-lg mb-4 sm:mb-6">
+              Track your progress and stay on top of your assignments
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <Link
+                to="/courses"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-white text-primary-700 rounded-lg sm:rounded-xl font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 text-sm sm:text-base"
+              >
                 <svg
-                  className="h-6 w-6 text-primary-600"
+                  className="h-4 w-4 sm:h-5 sm:w-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                Explore Courses
+              </Link>
+              <Link
+                to="/my-assignments"
+                className="inline-flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg sm:rounded-xl font-semibold hover:bg-white/30 transition-all duration-200 border-2 border-white/30 text-sm sm:text-base"
+              >
+                View Assignments
+                <svg
+                  className="h-4 w-4 sm:h-5 sm:w-5 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14 5l7 7m0 0l-7 7m7-7H3"
+                  />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid - Responsive */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
+          {/* Enrolled Courses Card */}
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/30">
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -325,28 +377,46 @@ const StudentDashboard = () => {
                 </svg>
               </div>
             </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-1">
+              <span className="hidden sm:inline">Enrolled Courses</span>
+              <span className="sm:hidden">Courses</span>
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {enrolledCourses.length}
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-primary-600 font-medium">
+              <Link
+                to="/my-courses"
+                className="hover:text-primary-700 flex items-center"
+              >
+                <span className="hidden sm:inline">View all</span>
+                <span className="sm:hidden">View</span>
+                <svg
+                  className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
           </div>
 
-          {/* Assignments Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Pending Assignments
-                </p>
-                <p className="text-3xl font-bold text-secondary-600 mt-2">
-                  {
-                    assignments.filter(
-                      (a) =>
-                        a.status === "published" &&
-                        !isAssignmentSubmitted(a._id)
-                    ).length
-                  }
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+          {/* Pending Assignments Card */}
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-secondary-500/30">
                 <svg
-                  className="h-6 w-6 text-secondary-600"
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -360,27 +430,51 @@ const StudentDashboard = () => {
                 </svg>
               </div>
             </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-1">
+              <span className="hidden sm:inline">Pending Work</span>
+              <span className="sm:hidden">Pending</span>
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {
+                assignments.filter(
+                  (a) =>
+                    a.status === "published" && !isAssignmentSubmitted(a._id)
+                ).length
+              }
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-secondary-600 font-medium">
+              <Link
+                to="/my-assignments"
+                className="hover:text-secondary-700 flex items-center"
+              >
+                <span className="hidden sm:inline">View tasks</span>
+                <span className="sm:hidden">View</span>
+                <svg
+                  className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
           </div>
 
-          {/* Grades Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Graded Submissions
-                </p>
-                <p className="text-3xl font-bold text-green-600 mt-2">
-                  {
-                    mySubmissions.filter(
-                      (s) => s.grade !== null && s.grade !== undefined
-                    ).length
-                  }
-                  /{mySubmissions.length}
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+          {/* Graded Submissions Card */}
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.3s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-success-500 to-success-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-success-500/30">
                 <svg
-                  className="h-6 w-6 text-green-600"
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -394,132 +488,242 @@ const StudentDashboard = () => {
                 </svg>
               </div>
             </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-1">
+              Graded
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {
+                mySubmissions.filter(
+                  (s) => s.grade !== null && s.grade !== undefined
+                ).length
+              }
+              <span className="text-lg sm:text-xl lg:text-2xl text-gray-400">
+                /{mySubmissions.length}
+              </span>
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-success-600 font-medium">
+              <Link
+                to="/grades"
+                className="hover:text-success-700 flex items-center"
+              >
+                <span className="hidden sm:inline">View grades</span>
+                <span className="sm:hidden">View</span>
+                <svg
+                  className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
+          </div>
+
+          {/* Live Classes Card */}
+          <div
+            className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up border border-gray-100"
+            style={{ animationDelay: "0.4s" }}
+          >
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-accent-500/30">
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <p className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide mb-1">
+              <span className="hidden sm:inline">Upcoming Classes</span>
+              <span className="sm:hidden">Classes</span>
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-gray-900">
+              {liveClasses.length}
+            </p>
+            <div className="mt-2 sm:mt-3 flex items-center text-xs sm:text-sm text-accent-600 font-medium">
+              <Link
+                to="/live-classes"
+                className="hover:text-accent-700 flex items-center"
+              >
+                <span className="hidden sm:inline">Join now</span>
+                <span className="sm:hidden">Join</span>
+                <svg
+                  className="h-3 w-3 sm:h-4 sm:w-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Quick Actions - Compact & Responsive */}
+        <div
+          className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border border-gray-100 animate-fade-in-up"
+          style={{ animationDelay: "0.5s" }}
+        >
+          <div className="flex items-center justify-between mb-3 sm:mb-4 lg:mb-6">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-display font-bold text-gray-900">
+              Quick Actions
+            </h2>
+            <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
+              Navigate faster
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
             <Link
               to="/courses"
-              className="flex items-center p-4 border-2 border-primary-500 rounded-lg hover:bg-primary-50 transition duration-150"
+              className="group flex flex-col items-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-primary-200 hover:border-primary-400"
             >
-              <svg
-                className="h-8 w-8 text-primary-600 mr-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              <div>
-                <p className="font-semibold text-gray-900">Browse Courses</p>
-                <p className="text-sm text-gray-600">
-                  Find new courses to enroll
-                </p>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-3 lg:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
               </div>
+              <p className="font-bold text-gray-900 mb-0.5 sm:mb-1 text-center text-xs sm:text-sm lg:text-base">
+                Browse Courses
+              </p>
+              <p className="text-xs text-gray-600 text-center hidden sm:block">
+                Discover new learning
+              </p>
             </Link>
 
             <Link
               to="/my-assignments"
-              className="flex items-center p-4 border-2 border-secondary-500 rounded-lg hover:bg-secondary-50 transition duration-150"
+              className="group flex flex-col items-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-secondary-50 to-secondary-100/50 rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-secondary-200 hover:border-secondary-400"
             >
-              <svg
-                className="h-8 w-8 text-secondary-600 mr-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              <div>
-                <p className="font-semibold text-gray-900">View Assignments</p>
-                <p className="text-sm text-gray-600">Check pending work</p>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-3 lg:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
               </div>
+              <p className="font-bold text-gray-900 mb-0.5 sm:mb-1 text-center text-xs sm:text-sm lg:text-base">
+                Assignments
+              </p>
+              <p className="text-xs text-gray-600 text-center hidden sm:block">
+                View pending work
+              </p>
             </Link>
 
             <Link
               to="/live-classes"
-              className="flex items-center p-4 border-2 border-red-500 rounded-lg hover:bg-red-50 transition duration-150"
+              className="group flex flex-col items-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-accent-50 to-accent-100/50 rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-accent-200 hover:border-accent-400"
             >
-              <svg
-                className="h-8 w-8 text-red-600 mr-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-              <div>
-                <p className="font-semibold text-gray-900">Live Classes</p>
-                <p className="text-sm text-gray-600">Join upcoming classes</p>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-3 lg:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
               </div>
+              <p className="font-bold text-gray-900 mb-0.5 sm:mb-1 text-center text-xs sm:text-sm lg:text-base">
+                Live Classes
+              </p>
+              <p className="text-xs text-gray-600 text-center hidden sm:block">
+                Join sessions
+              </p>
             </Link>
 
             <Link
               to="/grades"
-              className="flex items-center p-4 border-2 border-green-500 rounded-lg hover:bg-green-50 transition duration-150"
+              className="group flex flex-col items-center p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-success-50 to-success-100/50 rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 border-success-200 hover:border-success-400"
             >
-              <svg
-                className="h-8 w-8 text-green-600 mr-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <div>
-                <p className="font-semibold text-gray-900">View Grades</p>
-                <p className="text-sm text-gray-600">Check your performance</p>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 bg-gradient-to-br from-success-500 to-success-600 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-3 lg:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <svg
+                  className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
+                </svg>
               </div>
+              <p className="font-bold text-gray-900 mb-0.5 sm:mb-1 text-center text-xs sm:text-sm lg:text-base">
+                View Grades
+              </p>
+              <p className="text-xs text-gray-600 text-center hidden sm:block">
+                Track performance
+              </p>
             </Link>
           </div>
         </div>
 
-        {/* Upcoming Assignments Section */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">
-              Upcoming Assignments
-            </h2>
+        {/* Upcoming Assignments Section - Compact & Responsive */}
+        <div
+          className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 border border-gray-100 animate-fade-in-up"
+          style={{ animationDelay: "0.6s" }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
+            <div>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-display font-bold text-gray-900 mb-1">
+                Upcoming Assignments
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500">
+                Stay on top of your deadlines
+              </p>
+            </div>
             <Link
               to="/my-assignments"
-              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+              className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-50 text-primary-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold hover:bg-primary-100 transition-all duration-200 whitespace-nowrap"
             >
-              View All →
-            </Link>
-          </div>
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-            </div>
-          ) : assignments.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+              View All
               <svg
-                className="h-16 w-16 mx-auto text-gray-300 mb-4"
+                className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -528,20 +732,46 @@ const StudentDashboard = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  d="M9 5l7 7-7 7"
                 />
               </svg>
-              <p>No assignments available</p>
+            </Link>
+          </div>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600 mx-auto"></div>
+              <p className="text-gray-500 mt-4">Loading assignments...</p>
+            </div>
+          ) : assignments.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="h-20 w-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="h-10 w-10 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-lg font-semibold text-gray-700">
+                No assignments yet
+              </p>
               <p className="text-sm mt-2">
                 Assignments will appear here once your teachers create them
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {assignments
                 .filter((assignment) => assignment.status === "published")
                 .slice(0, 5)
-                .map((assignment) => {
+                .map((assignment, idx) => {
                   const submitted = isAssignmentSubmitted(assignment._id);
                   const submission = getSubmissionForAssignment(assignment._id);
                   const isLate = isAssignmentLate(assignment.dueDate);
@@ -549,63 +779,191 @@ const StudentDashboard = () => {
                   return (
                     <div
                       key={assignment._id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                      className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-100 rounded-xl hover:border-primary-200 hover:shadow-md transition-all duration-300 animate-fade-in-up"
+                      style={{ animationDelay: `${0.1 * idx}s` }}
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">
-                            {assignment.title}
-                          </h3>
+                      <div className="flex-1 w-full sm:w-auto mb-4 sm:mb-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div
+                            className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                              submitted
+                                ? "bg-success-100"
+                                : isLate
+                                ? "bg-accent-100"
+                                : "bg-primary-100"
+                            }`}
+                          >
+                            <svg
+                              className={`h-5 w-5 ${
+                                submitted
+                                  ? "text-success-600"
+                                  : isLate
+                                  ? "text-accent-600"
+                                  : "text-primary-600"
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900 text-lg">
+                              {assignment.title}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {assignment.course?.title || "Course"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 ml-13">
                           {submitted && (
-                            <span className="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                              ✓ Submitted
+                            <span className="inline-flex items-center px-3 py-1 bg-success-100 text-success-700 text-xs font-bold rounded-full">
+                              <svg
+                                className="h-3.5 w-3.5 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                              Submitted
                             </span>
                           )}
                           {!submitted && isLate && (
-                            <span className="inline-block px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                              ⚠ Late
+                            <span className="inline-flex items-center px-3 py-1 bg-accent-100 text-accent-700 text-xs font-bold rounded-full">
+                              <svg
+                                className="h-3.5 w-3.5 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              Overdue
                             </span>
                           )}
+                          {!submitted && !isLate && (
+                            <span className="inline-flex items-center px-3 py-1 bg-warning-100 text-warning-700 text-xs font-bold rounded-full">
+                              <svg
+                                className="h-3.5 w-3.5 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              Pending
+                            </span>
+                          )}
+                          <span className="text-sm text-gray-500">
+                            <span className="font-semibold">Due:</span>{" "}
+                            {formatDate(assignment.dueDate)}
+                          </span>
+                          <span className="text-sm font-bold text-primary-600">
+                            {assignment.totalPoints} points
+                          </span>
                         </div>
-                        <p className="text-sm text-gray-600 mb-1">
-                          {assignment.course?.title || "Course"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Due: {formatDate(assignment.dueDate)} •{" "}
-                          {assignment.totalPoints} points
-                        </p>
                         {submitted && submission && (
-                          <div className="mt-2 text-sm">
+                          <div className="mt-3 ml-13">
                             {submission.grade !== null &&
                             submission.grade !== undefined ? (
-                              <span className="text-green-600 font-semibold">
-                                Grade: {submission.grade}/
-                                {assignment.totalPoints}
-                              </span>
+                              <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-success-50 to-success-100 rounded-lg">
+                                <svg
+                                  className="h-4 w-4 text-success-600 mr-2"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                  />
+                                </svg>
+                                <span className="text-sm font-bold text-success-700">
+                                  Grade: {submission.grade}/
+                                  {assignment.totalPoints}
+                                </span>
+                              </div>
                             ) : (
-                              <span className="text-gray-500">
+                              <span className="text-sm text-gray-500 italic">
                                 Submitted on{" "}
-                                {formatDate(submission.submittedAt)} • Pending
-                                grading
+                                {formatDate(submission.submittedAt)} • Awaiting
+                                grade
                               </span>
                             )}
                           </div>
                         )}
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-0 sm:ml-6 w-full sm:w-auto">
                         {submitted ? (
                           <Link
                             to={`/my-assignments`}
-                            className="inline-block px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+                            className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all duration-200"
                           >
-                            View Submission
+                            View Details
+                            <svg
+                              className="ml-2 h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
                           </Link>
                         ) : (
                           <Link
                             to={`/submit-assignment/${assignment._id}`}
-                            className="inline-block px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition shadow-sm"
+                            className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl text-sm font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl group-hover:scale-105"
                           >
                             Submit Now
+                            <svg
+                              className="ml-2 h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 7l5 5m0 0l-5 5m5-5H6"
+                              />
+                            </svg>
                           </Link>
                         )}
                       </div>
@@ -614,14 +972,27 @@ const StudentDashboard = () => {
                 })}
               {assignments.filter((a) => a.status === "published").length >
                 5 && (
-                <div className="text-center pt-2">
+                <div className="text-center pt-4">
                   <Link
                     to="/my-assignments"
-                    className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                    className="inline-flex items-center px-6 py-3 bg-primary-50 text-primary-700 rounded-xl text-sm font-bold hover:bg-primary-100 transition-all duration-200"
                   >
                     View all{" "}
                     {assignments.filter((a) => a.status === "published").length}{" "}
-                    assignments →
+                    assignments
+                    <svg
+                      className="ml-2 h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
                   </Link>
                 </div>
               )}
