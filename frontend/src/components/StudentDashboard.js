@@ -45,49 +45,87 @@ const StudentDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      console.log("📚 [StudentDashboard] Fetching enrolled courses...");
-      const enrollmentResponse = await enrollmentAPI.getMyEnrollments();
       console.log(
-        "✅ [StudentDashboard] Enrollments:",
-        enrollmentResponse.data
+        "📚 [StudentDashboard] Fetching all dashboard data in parallel..."
       );
-      // Filter out enrollments with null courses (deleted courses)
-      const validEnrollments = (
-        enrollmentResponse.data.enrollments || []
-      ).filter((enrollment) => enrollment.course !== null);
-      setEnrolledCourses(validEnrollments);
+      const startTime = performance.now();
 
-      console.log("📚 [StudentDashboard] Fetching all courses...");
-      const coursesResponse = await courseAPI.getAllCourses();
-      console.log("✅ [StudentDashboard] All courses:", coursesResponse.data);
-      setAvailableCourses(coursesResponse.data.courses || []);
+      // Fetch all data in parallel using Promise.allSettled to avoid waterfall
+      const [
+        enrollmentResult,
+        coursesResult,
+        liveClassResult,
+        assignmentsResult,
+        submissionsResult,
+      ] = await Promise.allSettled([
+        enrollmentAPI.getMyEnrollments(),
+        courseAPI.getAllCourses(),
+        liveClassAPI.getMyLiveClasses(),
+        assignmentAPI.getMyAssignments(),
+        submissionAPI.getMySubmissions(),
+      ]);
 
-      // Fetch live classes for student
-      console.log("📺 [StudentDashboard] Fetching live classes...");
-      const liveClassResponse = await liveClassAPI.getMyLiveClasses();
+      const endTime = performance.now();
       console.log(
-        "✅ [StudentDashboard] Live classes:",
-        liveClassResponse.data
+        `⚡ [StudentDashboard] All data fetched in ${Math.round(
+          endTime - startTime
+        )}ms`
       );
-      setLiveClasses(liveClassResponse.data.liveClasses || []);
 
-      // Fetch assignments for student
-      console.log("📝 [StudentDashboard] Fetching assignments...");
-      const assignmentsResponse = await assignmentAPI.getMyAssignments();
-      console.log(
-        "✅ [StudentDashboard] Assignments:",
-        assignmentsResponse.data
-      );
-      setAssignments(assignmentsResponse.data.assignments || []);
+      // Handle enrollment data
+      if (enrollmentResult.status === "fulfilled") {
+        const validEnrollments = (
+          enrollmentResult.value.data.enrollments || []
+        ).filter((enrollment) => enrollment.course !== null);
+        setEnrolledCourses(validEnrollments);
+        console.log("✅ Enrollments:", validEnrollments.length);
+      } else {
+        console.error("❌ Enrollments failed:", enrollmentResult.reason);
+      }
 
-      // Fetch my submissions
-      console.log("📤 [StudentDashboard] Fetching my submissions...");
-      const submissionsResponse = await submissionAPI.getMySubmissions();
-      console.log(
-        "✅ [StudentDashboard] Submissions:",
-        submissionsResponse.data
-      );
-      setMySubmissions(submissionsResponse.data.submissions || []);
+      // Handle courses data
+      if (coursesResult.status === "fulfilled") {
+        setAvailableCourses(coursesResult.value.data.courses || []);
+        console.log(
+          "✅ Courses:",
+          coursesResult.value.data.courses?.length || 0
+        );
+      } else {
+        console.error("❌ Courses failed:", coursesResult.reason);
+      }
+
+      // Handle live classes data
+      if (liveClassResult.status === "fulfilled") {
+        setLiveClasses(liveClassResult.value.data.liveClasses || []);
+        console.log(
+          "✅ Live classes:",
+          liveClassResult.value.data.liveClasses?.length || 0
+        );
+      } else {
+        console.error("❌ Live classes failed:", liveClassResult.reason);
+      }
+
+      // Handle assignments data
+      if (assignmentsResult.status === "fulfilled") {
+        setAssignments(assignmentsResult.value.data.assignments || []);
+        console.log(
+          "✅ Assignments:",
+          assignmentsResult.value.data.assignments?.length || 0
+        );
+      } else {
+        console.error("❌ Assignments failed:", assignmentsResult.reason);
+      }
+
+      // Handle submissions data
+      if (submissionsResult.status === "fulfilled") {
+        setMySubmissions(submissionsResult.value.data.submissions || []);
+        console.log(
+          "✅ Submissions:",
+          submissionsResult.value.data.submissions?.length || 0
+        );
+      } else {
+        console.error("❌ Submissions failed:", submissionsResult.reason);
+      }
     } catch (error) {
       console.error("❌ [StudentDashboard] Error fetching data:", error);
     } finally {

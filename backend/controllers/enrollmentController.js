@@ -90,7 +90,8 @@ exports.getEnrollments = async (req, res) => {
 exports.getMyEnrollments = async (req, res) => {
   try {
     const enrollments = await Enrollment.find({ student: req.user._id })
-      .populate("course", "title description teacher")
+      .select("course status enrolledAt")
+      .populate("course", "title description teacher thumbnail")
       .populate({
         path: "course",
         populate: { path: "teacher", select: "name email" },

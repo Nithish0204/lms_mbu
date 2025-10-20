@@ -12,4 +12,8 @@ const CourseSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Indexes for performance
+CourseSchema.index({ teacher: 1, createdAt: -1 });
+CourseSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model("Course", CourseSchema);

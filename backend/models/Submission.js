@@ -69,9 +69,10 @@ SubmissionSchema.pre("save", async function (next) {
   next();
 });
 
-module.exports = mongoose.model("Submission", SubmissionSchema);
-
-// Indexes for performance
-SubmissionSchema.index({ assignment: 1, student: 1 });
+// Indexes for performance (MUST be before model export)
+SubmissionSchema.index({ assignment: 1, student: 1 }, { unique: true });
 SubmissionSchema.index({ student: 1, submittedAt: -1 });
 SubmissionSchema.index({ assignment: 1, submittedAt: -1 });
+SubmissionSchema.index({ student: 1, status: 1 });
+
+module.exports = mongoose.model("Submission", SubmissionSchema);

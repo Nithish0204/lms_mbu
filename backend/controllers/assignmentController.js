@@ -254,9 +254,12 @@ exports.getMyAssignments = async (req, res) => {
 
     if (req.user.role === "Teacher") {
       // For teachers, return all assignments they created
-      assignments = await Assignment.find({ teacher: req.user._id }).populate(
-        "course"
-      );
+      assignments = await Assignment.find({ teacher: req.user._id })
+        .select("title description dueDate totalPoints status course createdAt")
+        .populate("course", "title")
+        .lean()
+        .sort("-createdAt")
+        .limit(100);
       log.info("assignments:my:teacher", {
         requestId: req.id,
         teacherId: req.user._id,
@@ -266,14 +269,24 @@ exports.getMyAssignments = async (req, res) => {
       // For students, only return assignments from courses they're enrolled in
       const enrollments = await Enrollment.find({
         student: req.user._id,
-      }).select("course");
+        status: "active",
+      })
+        .select("course")
+        .lean();
 
       const enrolledCourseIds = enrollments.map((e) => e.course);
 
       assignments = await Assignment.find({
         course: { $in: enrolledCourseIds },
         status: "published", // Only show published assignments to students
-      }).populate("course");
+      })
+        .select(
+          "title description dueDate totalPoints status course createdAt allowLateSubmission"
+        )
+        .populate("course", "title")
+        .lean()
+        .sort("-dueDate")
+        .limit(50);
 
       log.info("assignments:my:student", {
         requestId: req.id,

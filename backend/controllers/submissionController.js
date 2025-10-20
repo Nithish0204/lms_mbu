@@ -240,6 +240,7 @@ exports.getMySubmissions = async (req, res) => {
     const submissions = await Submission.find({
       student: req.user._id,
     })
+      .select("assignment submittedAt isLate grade status feedback")
       .populate({
         path: "assignment",
         select: "title dueDate totalPoints course",
@@ -248,7 +249,9 @@ exports.getMySubmissions = async (req, res) => {
           select: "title",
         },
       })
-      .sort("-submittedAt");
+      .sort("-submittedAt")
+      .limit(100)
+      .lean();
 
     res.json({
       success: true,

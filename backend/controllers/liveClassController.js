@@ -279,9 +279,13 @@ exports.getMyLiveClasses = async (req, res) => {
       course: { $in: courseIds },
       status: { $in: ["scheduled", "live"] },
     })
+      .select(
+        "title description scheduledAt duration agoraChannel status course teacher"
+      )
       .populate("course", "title")
       .populate("teacher", "name email")
       .sort({ scheduledAt: 1 })
+      .limit(50)
       .lean();
 
     console.log(
